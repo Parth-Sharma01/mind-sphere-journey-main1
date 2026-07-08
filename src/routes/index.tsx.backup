@@ -1,0 +1,605 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
+import { motion } from "framer-motion";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { OrbitControls, Stars, useGLTF, Html } from "@react-three/drei";
+import { Suspense, useMemo, useRef, useState } from "react";
+import * as THREE from "three";
+import {
+  Sparkles,
+  Brain,
+  HeartPulse,
+  Wand2,
+  Gamepad2,
+  ArrowRight,
+  Users,
+  LineChart,
+  ClipboardCheck,
+} from "lucide-react";
+
+export const Route = createFileRoute("/")({
+  component: Index,
+});
+
+type Vec3 = { x: number; y: number; z: number };
+
+function seededRandom(seed: number) {
+  // deterministic-ish RNG for stable visuals
+  let t = seed % 2147483647;
+  if (t <= 0) t += 2147483646;
+  return () => (t = (t * 16807) % 2147483647) / 2147483647;
+}
+
+function NeuralBrainScene() {
+
+  const groupRef = useRef<THREE.Group | null>(null);
+  const pointsRef = useRef<THREE.Points | null>(null);
+  const impulseRef = useRef<THREE.Group | null>(null);
+  const neuronsRef = useRef<THREE.InstancedMesh | null>(null);
+  const lineMatRef = useRef<THREE.LineBasicMaterial | null>(null);
+
+  const { viewport, camera } = useThree();
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
+  // react-three-fiber types can be strict; we avoid `any` for materials/meshes.
+  const neuronDummy = useMemo(() => new THREE.Matrix4(), []);
+
+
+  const quality = viewport.width < 768 ? 0.55 : 1;
+  const particleCount = Math.floor(4200 * quality);
+  const neuronCount = Math.floor(520 * quality);
+  const impulseArcCount = Math.floor(140 * quality);
+
+  const rng = useMemo(() => seededRandom(1337), []);
+
+  const neuronPositions = useMemo(() => {
+    // points inside an ellipsoid-ish brain
+    const positions = new Float32Array(neuronCount * 3);
+    const radiusX = 1.65;
+    const radiusY = 1.35;
+    const radiusZ = 1.55;
+
+    for (let i = 0; i < neuronCount; i++) {
+      // random direction
+      const u = rng() * 2 - 1;
+      const t = rng() * Math.PI * 2;
+      const f = Math.sqrt(1 - u * u);
+      let x = f * Math.cos(t);
+      let y = u;
+      let z = f * Math.sin(t);
+
+      // bias toward surface slightly
+      const surfaceBias = 0.72 + rng() * 0.28;
+      x *= radiusX * surfaceBias;
+      y *= radiusY * (0.66 + rng() * 0.34);
+      z *= radiusZ * surfaceBias;
+
+      positions[i * 3 + 0] = x;
+      positions[i * 3 + 1] = y;
+      positions[i * 3 + 2] = z;
+    }
+    return positions;
+  }, [neuronCount, rng]);
+
+  const signalParticles = useMemo(() => {
+    const positions = new Float32Array(particleCount * 3);
+    const velocities = new Float32Array(particleCount * 3);
+    const ages = new Float32Array(particleCount);
+
+    const radiusX = 1.65;
+    const radiusY = 1.35;
+    const radiusZ = 1.55;
+
+    for (let i = 0; i < particleCount; i++) {
+      const u = rng() * 2 - 1;
+      const t = rng() * Math.PI * 2;
+      const f = Math.sqrt(1 - u * u);
+      let x = f * Math.cos(t);
+      let y = u;
+      let z = f * Math.sin(t);
+
+      const surfaceBias = 0.25 + rng() * 0.75;
+      x *= radiusX * surfaceBias;
+      y *= radiusY * (0.25 + rng() * 0.75);
+      z *= radiusZ * surfaceBias;
+
+      positions[i * 3 + 0] = x;
+      positions[i * 3 + 1] = y;
+      positions[i * 3 + 2] = z;
+
+      // velocity points roughly toward brain center with slight swirl
+      const len = Math.max(0.001, Math.sqrt(x * x + y * y + z * z));
+      const toCenterX = -x / len;
+      const toCenterY = -y / len;
+      const toCenterZ = -z / len;
+
+      const swirl = 0.35;
+      const vx = toCenterX + swirl * -(z / (len + 1e-6));
+      const vy = toCenterY + swirl * (x / (len + 1e-6));
+      const vz = toCenterZ + swirl * -(y / (len + 1e-6));
+
+      const speed = 0.22 + rng() * 0.6;
+      velocities[i * 3 + 0] = vx * speed;
+      velocities[i * 3 + 1] = vy * speed;
+      velocities[i * 3 + 2] = vz * speed;
+
+      ages[i] = rng() * 1;
+    }
+
+    return { positions, velocities, ages };
+  }, [particleCount, rng]);
+
+  const impulseData = useMemo(() => {
+    // Create arcs between random neuron pairs.
+    const arcs: { a: Vec3; b: Vec3; phase: number; speed: number }[] = [];
+    for (let i = 0; i < impulseArcCount; i++) {
+      const ia = Math.floor(rng() * neuronCount);
+      let ib = Math.floor(rng() * neuronCount);
+      if (ib === ia) ib = (ib + 17) % neuronCount;
+
+      const a = {
+        x: neuronPositions[ia * 3 + 0],
+        y: neuronPositions[ia * 3 + 1],
+        z: neuronPositions[ia * 3 + 2],
+      };
+      const b = {
+        x: neuronPositions[ib * 3 + 0],
+        y: neuronPositions[ib * 3 + 1],
+        z: neuronPositions[ib * 3 + 2],
+      };
+
+      arcs.push({
+        a,
+        b,
+        phase: rng(),
+        speed: 0.65 + rng() * 1.4,
+      });
+    }
+    return arcs;
+  }, [impulseArcCount, neuronCount, neuronPositions, rng]);
+
+  const [pointer, setPointer] = useState({ x: 0, y: 0 });
+
+  useFrame((state: { clock: { elapsedTime: number } }, delta: number) => {
+    const t = state.clock.elapsedTime;
+
+    // slow rotation + subtle vertical float
+    if (groupRef.current) {
+      groupRef.current.rotation.y = t * 0.12;
+      groupRef.current.rotation.x = Math.sin(t * 0.18) * 0.06;
+      groupRef.current.position.y = Math.sin(t * 0.9) * 0.045;
+    }
+
+    // cursor-follow camera (subtle)
+    camera.position.x += (pointer.x * 0.18 - camera.position.x) * (1 - Math.pow(0.0008, delta));
+    camera.position.y += (pointer.y * 0.12 - camera.position.y) * (1 - Math.pow(0.0008, delta));
+    camera.lookAt(0, 0, 0);
+
+    // move particles continuously
+    if (pointsRef.current) {
+      const geom = pointsRef.current.geometry as THREE.BufferGeometry;
+      const pos = geom.attributes.position as THREE.BufferAttribute;
+      const vel = signalParticles.velocities;
+
+      for (let i = 0; i < particleCount; i++) {
+        const ix = i * 3;
+        pos.array[ix + 0] += vel[ix + 0] * delta * 0.55;
+        pos.array[ix + 1] += vel[ix + 1] * delta * 0.55;
+        pos.array[ix + 2] += vel[ix + 2] * delta * 0.55;
+
+        // keep within brain-ish bounds by respawning when out of range
+        const x = pos.array[ix + 0];
+        const y = pos.array[ix + 1];
+        const z = pos.array[ix + 2];
+        const r = (x * x) / (1.65 * 1.65) + (y * y) / (1.35 * 1.35) + (z * z) / (1.55 * 1.55);
+        if (r > 1.08) {
+          // respawn near surface
+          const u = rng() * 2 - 1;
+          const tt = rng() * Math.PI * 2;
+          const f = Math.sqrt(1 - u * u);
+          let nx = f * Math.cos(tt);
+          let ny = u;
+          let nz = f * Math.sin(tt);
+          const surfaceBias = 0.55 + rng() * 0.45;
+          nx *= 1.65 * surfaceBias;
+          ny *= 1.35 * (0.55 + rng() * 0.45);
+          nz *= 1.55 * surfaceBias;
+          pos.array[ix + 0] = nx;
+          pos.array[ix + 1] = ny;
+          pos.array[ix + 2] = nz;
+        }
+      }
+      pos.needsUpdate = true;
+    }
+
+    // impulses pulse every few seconds
+    const pulse = 0.5 + 0.5 * Math.sin(t * 0.75);
+    const impulseGroup = impulseRef.current;
+    if (impulseGroup) {
+      impulseGroup.children.forEach((child, idx) => {
+        const mesh = child as THREE.Line;
+        const mat = (mesh.material as THREE.LineBasicMaterial) || lineMatRef.current;
+        if (mat) {
+          const phase = (idx % 10) / 10;
+          const intensity = 0.35 + 0.65 * Math.max(0, Math.sin(t * 1.15 + phase * Math.PI * 2));
+          mat.opacity = 0.12 + intensity * 0.55 * (0.65 + pulse * 0.35);
+          mat.color.setHSL(0.83, 1, 0.62);
+        }
+        mesh.visible = true;
+      });
+    }
+
+    // soften neuron highlight
+    if (neuronsRef.current) {
+      neuronsRef.current.instanceMatrix.needsUpdate = true;
+    }
+  });
+
+  const handlePointerMove = (e: THREE.Event) => {
+    // Normalize pointer relative to viewport
+    const ev = e as unknown as {
+      clientX: number;
+      clientY: number;
+      target: HTMLElement;
+      currentTarget: HTMLElement;
+    };
+    const el = (ev.currentTarget ?? ev.target) as HTMLElement;
+    const rect = el.getBoundingClientRect();
+    const x = ((ev.clientX - rect.left) / rect.width) * 2 - 1;
+    const y = -(((ev.clientY - rect.top) / rect.height) * 2 - 1);
+    setPointer({ x, y });
+  };
+
+  const onPointerOverNeurons = (index: number) => {
+    setHoveredIndex(index);
+  };
+
+  return (
+    <group ref={groupRef}>
+      <ambientLight intensity={0.25} />
+      <pointLight position={[4, 4, 5]} intensity={2.2} color="#d946ef" />
+      <pointLight position={[-4, -2, -5]} intensity={1.35} color="#22d3ee" />
+
+      {/* background depth */}
+      <Stars radius={42} depth={52} count={1200} factor={3} fade speed={0.9} />
+
+      {/* subtle neural network lines */}
+      {useMemo(() => {
+        // deterministic connections
+        const connections: { from: number; to: number }[] = [];
+        const maxLinks = Math.floor(90 * quality);
+        for (let i = 0; i < maxLinks; i++) {
+          const a = Math.floor(rng() * neuronCount);
+          const b = (a + Math.floor(rng() * neuronCount * 0.45) + 7) % neuronCount;
+          connections.push({ from: a, to: b });
+        }
+        return connections;
+      }, [quality, neuronCount, rng]) && null}
+
+      {/* Brain glass shell */}
+      <mesh scale={[1.02, 1.0, 1.0]} castShadow={false}>
+        <icosahedronGeometry args={[1.25, 4]} />
+        <meshPhysicalMaterial
+          transparent
+          opacity={0.18}
+          roughness={0.55}
+          metalness={0.05}
+          transmission={0.92}
+          thickness={0.6}
+          clearcoat={0.9}
+          clearcoatRoughness={0.35}
+          color="#a855f7"
+          emissive="#7c3aed"
+          emissiveIntensity={0.55}
+          envMapIntensity={0.5}
+        />
+      </mesh>
+
+      {/* Neurons as instanced translucent dots */}
+<instancedMesh
+  ref={neuronsRef}
+  args={[undefined as unknown as number, undefined as unknown as number, neuronCount]}
+>
+
+
+        <sphereGeometry args={[0.045, 10, 10]} />
+        <meshStandardMaterial
+          color="#7c3aed"
+          emissive="#22d3ee"
+          emissiveIntensity={0.35}
+          transparent
+          opacity={0.55}
+        />
+        {null}
+      </instancedMesh>
+
+      {/* moving neural signal particles */}
+      <points ref={pointsRef}>
+        <bufferGeometry>
+          <bufferAttribute
+            attach="attributes-position"
+            args={[signalParticles.positions, 3]}
+            count={particleCount}
+          />
+        </bufferGeometry>
+        <pointsMaterial
+          size={0.028}
+          sizeAttenuation
+          color="#22d3ee"
+          transparent
+          opacity={0.75}
+          depthWrite={false}
+        />
+      </points>
+
+      {/* impulse arcs */}
+      <group ref={impulseRef}>
+        {impulseData.map((arc, i) => {
+          const mid = new THREE.Vector3(
+            (arc.a.x + arc.b.x) / 2,
+            (arc.a.y + arc.b.y) / 2 + 0.25 + rng() * 0.15,
+            (arc.a.z + arc.b.z) / 2,
+          );
+          const curve = new THREE.QuadraticBezierCurve3(
+            new THREE.Vector3(arc.a.x, arc.a.y, arc.a.z),
+            mid,
+            new THREE.Vector3(arc.b.x, arc.b.y, arc.b.z),
+          );
+          const points = curve.getPoints(24);
+          const geometry = new THREE.BufferGeometry().setFromPoints(points);
+          const material = new THREE.LineBasicMaterial({
+            color: new THREE.Color("#22d3ee"),
+            transparent: true,
+            opacity: 0.18,
+            blending: THREE.AdditiveBlending,
+          });
+          return <primitive object={new THREE.Line(geometry, material)} key={i} visible={true} />;
+        })}
+      </group>
+
+      {/* cursor hover highlight */}
+      {hoveredIndex !== null ? (
+        <mesh
+          position={[
+            neuronPositions[hoveredIndex * 3 + 0],
+            neuronPositions[hoveredIndex * 3 + 1],
+            neuronPositions[hoveredIndex * 3 + 2],
+          ]}
+        >
+          <sphereGeometry args={[0.085, 16, 16]} />
+          <meshBasicMaterial color="#d946ef" transparent opacity={0.35} />
+        </mesh>
+      ) : null}
+
+      {/* OrbitControls gives Apple-like drag rotation; cursor-follow handled in useFrame */}
+      <OrbitControls
+        enablePan={false}
+        enableZoom={true}
+        minDistance={2.4}
+        maxDistance={7}
+        autoRotate
+        autoRotateSpeed={0.35}
+      />
+
+      {/* hover + pointer */}
+      <group
+        onPointerMove={(e) => handlePointerMove(e as unknown as THREE.Event)}
+        onPointerOver={() => undefined}
+        onPointerOut={() => setHoveredIndex(null)}
+      />
+
+    </group>
+  );
+}
+
+function Brain3D() {
+  return (
+    <Canvas camera={{ position: [0, 0, 4], fov: 55 }} dpr={[1, 2]}>
+      <Suspense
+        fallback={
+          <group>
+            <ambientLight intensity={0.2} />
+          </group>
+        }
+      >
+        <NeuralBrainScene />
+      </Suspense>
+    </Canvas>
+  );
+}
+
+const features = [
+  {
+    icon: Brain,
+    title: "Story-based Assessment",
+    desc: "30 gamified questions that feel like play — not a form.",
+  },
+  {
+    icon: HeartPulse,
+    title: "Mood Tracker",
+    desc: "Log daily and watch patterns emerge across weeks.",
+  },
+  {
+    icon: Wand2,
+    title: "AI Coach",
+    desc: "A gentle companion for reflection, planning, and calm.",
+  },
+  {
+    icon: Gamepad2,
+    title: "Mindful Games",
+    desc: "Reaction, memory & breathing games that reward focus.",
+  },
+  {
+    icon: LineChart,
+    title: "Mind Galaxy",
+    desc: "A living 3D universe of your wellness across 8 dimensions.",
+  },
+  {
+    icon: Users,
+    title: "Community",
+    desc: "An anonymous circle of students sharing what actually helps.",
+  },
+];
+
+const heroFeatures = [
+  {
+    icon: Gamepad2,
+    title: "🎮 Gamified Assessment",
+    desc: "Interactive scenario-based mental wellness experience.",
+  },
+  {
+    icon: Sparkles,
+    title: "🧠 AI Wellness Insights",
+    desc: "Personalized wellness trends and visual reports.",
+  },
+  {
+    icon: LineChart,
+    title: "🌌 Mind Galaxy",
+    desc: "Interactive visualization of emotional growth over time.",
+  },
+  {
+    icon: ClipboardCheck,
+    title: "🎯 Daily Wellness Missions",
+    desc: "Build healthier habits through small daily challenges.",
+  },
+];
+
+function Index() {
+  return (
+    <div className="space-y-32">
+      {/* Hero */}
+      <section className="grid lg:grid-cols-2 gap-8 items-center pt-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+        >
+          <div className="inline-flex items-center gap-2 rounded-full glass px-3 py-1 text-xs text-muted-foreground mb-6">
+            <Sparkles className="h-3 w-3 text-fuchsia-300" /> New · Mind Galaxy visualization
+          </div>
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.05]">
+            Play. Reflect. <br />
+            <span className="text-gradient">Understand. Heal.</span>
+          </h1>
+          <p className="mt-6 text-lg text-muted-foreground max-w-lg">
+            An AI-inspired wellness companion for students — gamified assessments, mood tracking,
+            mindful games, and a living galaxy of your inner state.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              to="/assessment"
+              className="group inline-flex items-center gap-2 rounded-full bg-white text-black px-6 py-3 text-sm font-medium hover:opacity-90 transition"
+            >
+              Start free assessment{" "}
+              <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition" />
+            </Link>
+            <Link
+              to="/dashboard"
+              className="rounded-full glass px-6 py-3 text-sm font-medium hover:bg-white/10 transition"
+            >
+              See dashboard
+            </Link>
+          </div>
+          <div className="mt-10 grid grid-cols-2 gap-4">
+            {heroFeatures.map((f, i) => (
+              <motion.div
+                key={f.title}
+                initial={{ opacity: 0, y: 18 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.05 }}
+                whileHover={{ y: -4 }}
+                whileTap={{ scale: 0.98 }}
+                className="glass rounded-3xl p-5 cursor-pointer"
+              >
+                <div className="flex items-center gap-3">
+                  <motion.div
+                    className="h-10 w-10 rounded-2xl bg-gradient-to-br from-fuchsia-500/30 to-cyan-400/30 grid place-items-center relative"
+                    whileHover={{ filter: "drop-shadow(0 0 18px rgba(34,211,238,0.25))" }}
+                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                  >
+                    <f.icon className="h-5 w-5" />
+                    <span className="absolute inset-0 rounded-2xl bg-gradient-to-br from-fuchsia-500/20 to-cyan-400/20 opacity-0 group-hover:opacity-100" />
+                  </motion.div>
+                  <div>
+                    <div className="font-medium leading-tight">{f.title}</div>
+                    <div className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                      {f.desc}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.9 }}
+          className="relative h-[420px] lg:h-[520px] rounded-3xl overflow-hidden glass"
+        >
+          <Brain3D />
+          <div className="absolute inset-x-0 bottom-0 p-4 flex items-center justify-between text-xs text-muted-foreground">
+            <span>Interactive 3D · drag to rotate</span>
+            <span className="flex items-center gap-1">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" /> Live
+            </span>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* Features */}
+      <section>
+        <div className="max-w-2xl">
+          <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight">
+            Every part of your mind, gently in view.
+          </h2>
+          <p className="mt-3 text-muted-foreground">
+            Not a diagnostic tool. A calm daily companion built to help students stay curious about
+            themselves.
+          </p>
+        </div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mt-10">
+          {features.map((f, i) => (
+            <motion.div
+              key={f.title}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.05 }}
+              whileHover={{ y: -4 }}
+              className="glass rounded-3xl p-6 hover:bg-white/[0.07] transition"
+            >
+              <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-fuchsia-500/30 to-cyan-400/30 grid place-items-center mb-4">
+                <f.icon className="h-5 w-5" />
+              </div>
+              <div className="font-medium">{f.title}</div>
+              <p className="mt-1 text-sm text-muted-foreground">{f.desc}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="glass-strong rounded-[2rem] p-10 sm:p-16 text-center relative overflow-hidden">
+        <div
+          className="absolute inset-0 -z-10 opacity-60"
+          style={{ background: "var(--gradient-glow)" }}
+        />
+        <h2 className="text-3xl sm:text-5xl font-semibold tracking-tight max-w-2xl mx-auto">
+          Your mind deserves five gentle minutes a day.
+        </h2>
+        <p className="mt-4 text-muted-foreground max-w-lg mx-auto">
+          Start with a 3-minute assessment. No email, no pressure.
+        </p>
+        <Link
+          to="/assessment"
+          className="mt-8 inline-flex items-center gap-2 rounded-full bg-white text-black px-7 py-3 font-medium"
+        >
+          Begin your journey <ArrowRight className="h-4 w-4" />
+        </Link>
+      </section>
+    </div>
+  );
+}
