@@ -60,7 +60,6 @@ const nav = [
   { to: "/", label: "Home", icon: Home },
   { to: "/mind-score", label: "Mind Score", icon: ClipboardCheck },
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/melody-of-life", label: "MeLodY OfLife", icon: HeartPulse },
   { to: "/journal", label: "Journal", icon: BookOpen },
   { to: "/games", label: "Games", icon: Gamepad2 },
   { to: "/coach", label: "AI Coach", icon: Sparkles },
