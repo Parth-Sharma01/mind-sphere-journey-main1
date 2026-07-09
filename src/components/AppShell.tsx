@@ -1,6 +1,6 @@
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, createContext, useContext, useEffect, useMemo } from "react";
 import {
   Home,
   ClipboardCheck,
@@ -15,8 +15,46 @@ import {
   Settings,
   Menu,
   X,
-  Headphones,
+  Sun,
+  Moon,
 } from "lucide-react";
+
+// --- Theme Provider ---
+type Theme = "dark" | "light";
+type ThemeContextType = {
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
+};
+
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setThemeState] = useState<Theme>(() => {
+    if (typeof window === "undefined") return "dark";
+    const storedTheme = localStorage.getItem("mindsphere-theme") as Theme | null;
+    if (storedTheme) return storedTheme;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  });
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove("light", "dark");
+    root.classList.add(theme);
+    localStorage.setItem("mindsphere-theme", theme);
+  }, [theme]);
+
+  const value = useMemo(() => ({ theme, setTheme: setThemeState }), [theme]);
+
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+}
+
+export function useTheme() {
+  const context = useContext(ThemeContext);
+  if (context === undefined) {
+    throw new Error("useTheme must be used within a ThemeProvider");
+  }
+  return context;
+}
 
 const nav = [
   { to: "/", label: "Home", icon: Home },
@@ -32,21 +70,22 @@ const nav = [
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
-export function AppShell() {
+function AppShellContent() {
   const [open, setOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { theme, setTheme } = useTheme();
 
   return (
-    <div className="min-h-screen relative overflow-x-hidden">
+    <div className="min-h-screen relative overflow-x-hidden bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors">
       {/* Aurora background */}
       <div className="pointer-events-none fixed inset-0 -z-10">
-        <div className="absolute -top-40 -left-40 h-[500px] w-[500px] rounded-full bg-fuchsia-500/20 blur-3xl animate-aurora" />
+        <div className="absolute -top-40 -left-40 h-[500px] w-[500px] rounded-full bg-purple-200/50 blur-3xl animate-aurora dark:bg-fuchsia-500/20" />
         <div
-          className="absolute top-1/3 -right-40 h-[600px] w-[600px] rounded-full bg-cyan-400/15 blur-3xl animate-aurora"
+          className="absolute top-1/3 -right-40 h-[600px] w-[600px] rounded-full bg-yellow-200/50 blur-3xl animate-aurora dark:bg-cyan-400/15"
           style={{ animationDelay: "3s" }}
         />
         <div
-          className="absolute bottom-0 left-1/3 h-[400px] w-[400px] rounded-full bg-violet-600/20 blur-3xl animate-aurora"
+          className="absolute bottom-0 left-1/3 h-[400px] w-[400px] rounded-full bg-orange-200/50 blur-3xl animate-aurora dark:bg-violet-600/20"
           style={{ animationDelay: "6s" }}
         />
       </div>
@@ -66,7 +105,7 @@ export function AppShell() {
                 <Link
                   key={item.to}
                   to={item.to}
-                  className={`px-3 py-1.5 rounded-full text-sm transition ${active ? "bg-white/10 text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-white/5"}`}
+                  className={`px-3 py-1.5 rounded-full text-sm transition ${active ? "bg-black/5 dark:bg-white/10 text-gray-900 dark:text-white" : "text-gray-500 dark:text-muted-foreground hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5"}`}
                 >
                   {item.label}
                 </Link>
@@ -77,13 +116,22 @@ export function AppShell() {
           <div className="hidden lg:flex items-center gap-2">
             <Link
               to="/pricing"
-              className="text-sm text-muted-foreground hover:text-foreground px-3 py-1.5"
+              className="text-sm text-gray-500 dark:text-muted-foreground hover:text-gray-900 dark:hover:text-white px-3 py-1.5"
             >
               Pricing
             </Link>
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="p-2 rounded-full text-gray-500 dark:text-muted-foreground hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10"
+              aria-label="Toggle theme"
+            >
+              <AnimatePresence mode="wait">
+                <motion.div key={theme}>{theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}</motion.div>
+              </AnimatePresence>
+            </button>
             <Link
               to="/profile"
-              className="h-8 w-8 rounded-full bg-gradient-to-br from-cyan-400 to-violet-500 grid place-items-center text-xs font-semibold text-black"
+              className="h-8 w-8 rounded-full bg-gradient-to-br from-cyan-400 to-violet-500 grid place-items-center text-xs font-semibold text-white"
             >
               A
             </Link>
@@ -114,7 +162,7 @@ export function AppShell() {
                     key={item.to}
                     to={item.to}
                     onClick={() => setOpen(false)}
-                    className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm ${active ? "bg-white/10" : "hover:bg-white/5"}`}
+                    className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm ${active ? "bg-black/5 dark:bg-white/10" : "hover:bg-black/5 dark:hover:bg-white/5"}`}
                   >
                     <Icon className="h-4 w-4" /> {item.label}
                   </Link>
@@ -139,20 +187,28 @@ export function AppShell() {
         </AnimatePresence>
       </main>
 
-      <footer className="border-t border-white/5 mt-20 py-10 px-4">
-        <div className="mx-auto max-w-7xl flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+      <footer className="border-t border-black/5 dark:border-white/5 mt-20 py-10 px-4">
+        <div className="mx-auto max-w-7xl flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500 dark:text-muted-foreground">
           <div className="flex items-center gap-2">
             <div className="h-6 w-6 rounded-md bg-gradient-to-br from-fuchsia-500 to-cyan-400" />
             <span>MindSphere AI · Play. Reflect. Understand. Heal.</span>
           </div>
           <div className="flex gap-6">
-            <Link to="/pricing">Pricing</Link>
-            <Link to="/community">Community</Link>
-            <Link to="/settings">Settings</Link>
+            <Link to="/pricing" className="hover:text-gray-800 dark:hover:text-white">Pricing</Link>
+            <Link to="/community" className="hover:text-gray-800 dark:hover:text-white">Community</Link>
+            <Link to="/settings" className="hover:text-gray-800 dark:hover:text-white">Settings</Link>
           </div>
           <span>© 2026 MindSphere</span>
         </div>
       </footer>
     </div>
+  );
+}
+
+export function AppShell() {
+  return (
+    <ThemeProvider>
+      <AppShellContent />
+    </ThemeProvider>
   );
 }

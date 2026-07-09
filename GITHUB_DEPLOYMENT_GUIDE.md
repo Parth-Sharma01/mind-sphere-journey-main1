@@ -7,12 +7,14 @@ Complete step-by-step guide to get MindSphere on GitHub and deployed to the inte
 ## Step 1: Create GitHub Account & Repository
 
 ### 1.1 Create GitHub Account (if needed)
+
 - Go to https://github.com/signup
 - Fill in username, email, password
 - Verify email
 - Select free plan
 
 ### 1.2 Create New Repository
+
 1. Click "+" menu (top right)
 2. Select "New repository"
 3. Name: `mind-sphere`
@@ -22,10 +24,13 @@ Complete step-by-step guide to get MindSphere on GitHub and deployed to the inte
 7. Click "Create repository"
 
 ### 1.3 Copy Repository URL
+
 You'll see a page with:
+
 ```
 https://github.com/YOUR_USERNAME/mind-sphere.git
 ```
+
 **Copy this URL** - you'll need it next
 
 ---
@@ -60,6 +65,7 @@ git push -u origin main
 **Wait for the upload to complete...** ⏳
 
 When done, you'll see:
+
 ```
 ✓ Branch 'main' set up to track remote branch 'main'
 ```
@@ -210,24 +216,31 @@ git push origin main
 ## Troubleshooting
 
 ### Problem: "git: command not found"
+
 **Solution:** Install Git from https://git-scm.com/download/win
 
 ### Problem: "fatal: not a git repository"
+
 **Solution:** Run `git init` in your project directory first
 
 ### Problem: "Repository not found"
+
 **Solution:** Check your URL from Step 1.3, make sure YOUR_USERNAME is correct
 
 ### Problem: Build fails on deployment
-**Solution:** 
+
+**Solution:**
+
 1. Try `npm run build` locally first to debug
 2. Check platform build logs for error messages
 3. Ensure all dependencies installed
 
 ### Problem: Site shows 404 on navigation
+
 **Solution:** This means SPA routing isn't configured. Verify `netlify.toml` is in repo.
 
 ### Problem: Data not saving
+
 **Solution:** Check browser localStorage in DevTools. First visit creates data.
 
 ---
@@ -255,18 +268,22 @@ git push origin main
 ## Helpful Links
 
 **GitHub:**
+
 - Create account: https://github.com/signup
 - Create repository: https://repo.new
 
 **Netlify:**
+
 - Create account: https://app.netlify.com/signup
 - Site settings: https://app.netlify.com/
 
 **Vercel:**
+
 - Create account: https://vercel.com/signup
 - Dashboard: https://vercel.com/dashboard
 
 **Git Documentation:**
+
 - Cheat sheet: https://git-scm.com/cheatsheet
 - Tutorial: https://git-scm.com/book/en/v2/Getting-Started-Git-Basics
 
@@ -275,6 +292,7 @@ git push origin main
 ## Quick Reference
 
 ### First Time Setup
+
 ```powershell
 git init
 git add .
@@ -285,6 +303,7 @@ git push -u origin main
 ```
 
 ### Regular Updates
+
 ```powershell
 git add .
 git commit -m "Your message"
@@ -292,6 +311,7 @@ git push origin main
 ```
 
 ### Check Status
+
 ```powershell
 git status
 git log

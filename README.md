@@ -10,6 +10,7 @@ A scientifically-grounded mental wellness assessment platform for students, feat
 ## 🌟 Key Features
 
 ### 🧪 Comprehensive Assessment
+
 - **75+ scientifically-designed questions** inspired by GAD-7 and PHQ-9
 - **4 psychological dimensions:**
   - Emotional Resilience
@@ -20,25 +21,30 @@ A scientifically-grounded mental wellness assessment platform for students, feat
 - **Empathetic interpretation** - Detailed, supportive feedback for each score
 
 ### 📊 Personal Dashboard
+
 - Real-time score visualization with Recharts
 - Progress tracking across multiple assessments
 - Motivational messaging and quick access to all features
 - Beautiful, premium aesthetic design
 
 ### 🎯 MeLodY OfLife Journey
+
 An introspective 4-step journey exploring:
+
 1. Competitive exam preparation status
 2. Deeper "why" behind your goals
 3. True ambition and dreams
 4. Personalized encouragement
 
 ### 📔 Private Encrypted Journal
+
 - **Client-side encryption** - XOR cipher with base64 encoding
 - **Complete privacy** - All data stored locally in browser
 - Full CRUD operations (create, read, search, delete)
 - Beautiful UI with timestamps and search
 
 ### 🎮 Evidence-Based Games
+
 1. **Flower Breathing** 🌸 - Calm nervous system (4-4-6 breathing pattern)
 2. **Anti-Stress Stroop Test** 🎨 - Test cognitive control (30-second challenge)
 3. **Focus Maze** 🎯 - Measure attention and patience (sequential navigation)
@@ -46,6 +52,7 @@ An introspective 4-step journey exploring:
 Performance tracking and improvement metrics for each game.
 
 ### 🎨 Premium Design
+
 - Elegant gradient backgrounds (sage green, cream, sand)
 - Smooth animations with Framer Motion
 - Responsive design for all devices
@@ -58,6 +65,7 @@ Performance tracking and improvement metrics for each game.
 ### For Users
 
 Visit the live deployment:
+
 - 🌐 [Live Site](https://mind-sphere-demo.netlify.app)
 
 Take an assessment, explore your mind, track your growth!
@@ -65,10 +73,12 @@ Take an assessment, explore your mind, track your growth!
 ### For Developers
 
 #### Prerequisites
+
 - Node.js 20+
 - npm or yarn
 
 #### Installation
+
 ```bash
 # Clone repository
 git clone https://github.com/YOUR_USERNAME/mind-sphere.git
@@ -146,11 +156,11 @@ All data stored locally in browser (no backend required):
 
 ```javascript
 // localStorage keys
-mindsphere_assessment_history      // Assessment results
-mindsphere_recent_question_sets    // Question history (prevents repetition)
-mindsphere_journal_entries         // Encrypted journal entries
-mindsphere_melody_of_life          // Ambition/goal data
-mindsphere_games_data              // Game performance metrics
+mindsphere_assessment_history; // Assessment results
+mindsphere_recent_question_sets; // Question history (prevents repetition)
+mindsphere_journal_entries; // Encrypted journal entries
+mindsphere_melody_of_life; // Ambition/goal data
+mindsphere_games_data; // Game performance metrics
 ```
 
 ---
@@ -180,6 +190,7 @@ mindsphere_games_data              // Game performance metrics
 ## 🚀 Deployment
 
 ### Deploy to Netlify (Recommended)
+
 ```bash
 # 1. Push to GitHub
 git add .
@@ -195,6 +206,7 @@ git push origin main
 Your site will be live in 2-5 minutes. Read [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) for more options.
 
 ### Deploy to Vercel
+
 ```bash
 # 1. Push to GitHub (same as above)
 # 2. Go to https://vercel.com
@@ -204,6 +216,7 @@ Your site will be live in 2-5 minutes. Read [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_G
 ```
 
 ### Deploy to GitHub Pages
+
 ```bash
 # 1. Push to GitHub
 # 2. Go to Settings > Pages
@@ -216,13 +229,16 @@ Your site will be live in 2-5 minutes. Read [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_G
 ## 📊 Assessment Scoring
 
 ### 4 Dimensions
+
 Each dimension scored 0-100:
+
 - **Emotional Resilience:** Ability to bounce back and maintain hope
 - **Focus & Clarity:** Mental sharpness and concentration
 - **Stress Balance:** Managing pressure and equilibrium
 - **Social Harmony:** Connection and sense of belonging
 
 ### Score Interpretation
+
 - **0-35:** Needs attention and support
 - **35-55:** Developing, with room for growth
 - **55-75:** Good foundation, keep building
@@ -233,24 +249,28 @@ Each dimension scored 0-100:
 ## 🎯 Features Highlight
 
 ### No Question Repetition
+
 - Question pool of 75+ diverse questions
 - 30 unique questions per assessment
 - Tracks recent attempts in localStorage
 - Ensures fresh experience every time
 
 ### Smooth Animations
+
 - Framer Motion for all transitions
 - Wave SVG with drift animations
 - Staggered component entries
 - Game interactions with visual feedback
 
 ### Responsive Design
+
 - Mobile-first approach
 - Tested on all screen sizes
 - Touch-friendly interfaces
 - Accessible color contrasts
 
 ### Data Privacy
+
 - Encryption on client-side
 - No external API calls
 - No data collection
@@ -290,18 +310,21 @@ Each dimension scored 0-100:
 ## 📈 Future Roadmap
 
 ### Phase 2: Backend Integration
+
 - User authentication
 - Cloud data backup
 - Cross-device sync
 - Professional encryption
 
 ### Phase 3: Advanced Features
+
 - AI-powered insights
 - Peer community features
 - Professional counselor referrals
 - Mobile app
 
 ### Phase 4: Integration
+
 - Wearable device integration
 - Calendar integration
 - Email notifications
@@ -312,6 +335,7 @@ Each dimension scored 0-100:
 ## 🤝 Contributing
 
 Contributions welcome! Areas of interest:
+
 - Feature suggestions
 - Bug reports
 - Design improvements
@@ -324,11 +348,13 @@ Contributions welcome! Areas of interest:
 ## 📞 Support
 
 ### Documentation
+
 - [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) - Deployment help
 - [TECHNICAL_IMPLEMENTATION.md](./TECHNICAL_IMPLEMENTATION.md) - Developer guide
 - [QUICK_START_GUIDE.md](./QUICK_START_GUIDE.md) - User guide
 
 ### External Resources
+
 - **React:** https://react.dev/
 - **TanStack Router:** https://tanstack.com/router/latest
 - **Framer Motion:** https://www.framer.com/motion/
@@ -345,6 +371,7 @@ MIT License - Feel free to use this project for personal and educational purpose
 ## 🎓 Scientific Foundation
 
 Assessment inspired by:
+
 - **GAD-7** - Generalized Anxiety Disorder Scale
 - **PHQ-9** - Patient Health Questionnaire
 - Psychological resilience research
@@ -352,6 +379,7 @@ Assessment inspired by:
 - Mindfulness research
 
 Games based on:
+
 - Breathing exercise research
 - Stroop effect studies
 - Attention and patience research
@@ -363,6 +391,7 @@ Games based on:
 Built with ❤️ for student mental wellness.
 
 Technologies:
+
 - React team for amazing framework
 - TanStack for routing excellence
 - Tailwind CSS for utility-first styling
@@ -394,6 +423,7 @@ Technologies:
 ## 📮 Questions?
 
 Check out the detailed documentation:
+
 - 🚀 [Deployment Guide](./DEPLOYMENT_GUIDE.md)
 - 👤 [User Guide](./QUICK_START_GUIDE.md)
 - 🔧 [Technical Guide](./TECHNICAL_IMPLEMENTATION.md)

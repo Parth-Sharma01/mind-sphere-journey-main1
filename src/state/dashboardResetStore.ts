@@ -29,12 +29,14 @@ export function useDashboardResetStore() {
     setState(ZERO_STATE);
   }, []);
 
-  const api = useMemo(() => ({
-    getState: () => state,
-    reset: () => setState(ZERO_STATE),
-    setAll: (next: DashboardResetState) => setState(next),
-  }), [state]);
+  const api = useMemo(
+    () => ({
+      getState: () => state,
+      reset: () => setState(ZERO_STATE),
+      setAll: (next: DashboardResetState) => setState(next),
+    }),
+    [state],
+  );
 
   return { state, ...api, reset: () => setState(ZERO_STATE) };
 }
-

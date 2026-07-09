@@ -1,38 +1,40 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Lock, Plus, Trash2, Calendar, Search } from 'lucide-react';
-import {
-  saveJournalEntry,
-  getAllJournalEntries,
-  deleteJournalEntry,
-} from '@/lib/storage-utils';
+import { createFileRoute } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Lock, Plus, Trash2, Calendar, Search } from "lucide-react";
+import { saveJournalEntry, getAllJournalEntries, deleteJournalEntry } from "@/lib/storage-utils";
 
-export const Route = createFileRoute('/journal')({
+export const Route = createFileRoute("/journal")({
   component: Journal,
-  head: () => ({ meta: [{ title: 'Private Journal · MindSphere' }] }),
+  head: () => ({ meta: [{ title: "Private Journal · MindSphere" }] }),
 });
 
-type ViewMode = 'list' | 'create';
+type ViewMode = "list" | "create";
+
+type JournalEntry = {
+  id: string;
+  content: string;
+  date: string;
+};
 
 function Journal() {
-  const [viewMode, setViewMode] = useState<ViewMode>('list');
-  const [entries, setEntries] = useState<any[]>([]);
-  const [newEntry, setNewEntry] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedEntry, setSelectedEntry] = useState<any>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [entries, setEntries] = useState<JournalEntry[]>([]);
+  const [newEntry, setNewEntry] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
 
-  // Load entries on mount
   useEffect(() => {
     loadEntries();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadEntries = () => {
     const allEntries = getAllJournalEntries();
-    setEntries(allEntries);
+    setEntries(allEntries as JournalEntry[]);
   };
 
   const handleSaveEntry = () => {
@@ -41,13 +43,13 @@ function Journal() {
     const entryId = `journal_${Date.now()}`;
     saveJournalEntry(entryId, newEntry);
 
-    setNewEntry('');
-    setViewMode('list');
+    setNewEntry("");
+    setViewMode("list");
     loadEntries();
   };
 
   const handleDeleteEntry = (entryId: string) => {
-    if (confirm('Are you sure you want to delete this entry? This action cannot be undone.')) {
+    if (confirm("Are you sure you want to delete this entry? This action cannot be undone.")) {
       deleteJournalEntry(entryId);
       loadEntries();
       setSelectedEntry(null);
@@ -57,25 +59,24 @@ function Journal() {
   const filteredEntries = entries.filter(
     (entry) =>
       entry.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      entry.date.includes(searchQuery)
+      entry.date.includes(searchQuery),
   );
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return date.toLocaleDateString("en-US", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   return (
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-indigo-50 via-white to-purple-50">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -86,13 +87,13 @@ function Journal() {
             <h1 className="text-4xl font-bold text-gray-800">Private Journal</h1>
           </div>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            A sacred space for your thoughts. Your entries are encrypted and stored locally on your device.
+            A sacred space for your thoughts. Your entries are encrypted and stored locally on your
+            device.
           </p>
         </motion.div>
 
         <AnimatePresence mode="wait">
-          {viewMode === 'create' ? (
-            // Create Entry View
+          {viewMode === "create" ? (
             <motion.div
               key="create"
               initial={{ opacity: 0, y: 20 }}
@@ -120,16 +121,16 @@ function Journal() {
 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                   <p className="text-sm text-blue-800">
-                    <strong>Privacy Note:</strong> Your entry will be encrypted using a secure client-side cipher
-                    before being stored. Only you can decrypt and read it.
+                    <strong>Privacy Note:</strong> Your entry will be encrypted using a secure
+                    client-side cipher before being stored. Only you can decrypt and read it.
                   </p>
                 </div>
 
                 <div className="flex gap-4">
                   <Button
                     onClick={() => {
-                      setNewEntry('');
-                      setViewMode('list');
+                      setNewEntry("");
+                      setViewMode("list");
                     }}
                     variant="outline"
                   >
@@ -146,7 +147,6 @@ function Journal() {
               </Card>
             </motion.div>
           ) : (
-            // List View
             <motion.div
               key="list"
               initial={{ opacity: 0, y: 20 }}
@@ -155,7 +155,6 @@ function Journal() {
               transition={{ duration: 0.3 }}
               className="space-y-6"
             >
-              {/* Controls */}
               <div className="flex gap-4 items-center">
                 <div className="flex-1 relative">
                   <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
@@ -168,7 +167,7 @@ function Journal() {
                   />
                 </div>
                 <Button
-                  onClick={() => setViewMode('create')}
+                  onClick={() => setViewMode("create")}
                   className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white gap-2 whitespace-nowrap"
                 >
                   <Plus className="w-5 h-5" />
@@ -176,15 +175,16 @@ function Journal() {
                 </Button>
               </div>
 
-              {/* Entries List */}
               {filteredEntries.length === 0 ? (
                 <Card className="p-12 text-center border-2 border-dashed border-gray-300">
                   <p className="text-gray-500 text-lg mb-4">
-                    {entries.length === 0 ? 'No entries yet. Start writing!' : 'No entries match your search.'}
+                    {entries.length === 0
+                      ? "No entries yet. Start writing!"
+                      : "No entries match your search."}
                   </p>
                   {entries.length === 0 && (
                     <Button
-                      onClick={() => setViewMode('create')}
+                      onClick={() => setViewMode("create")}
                       className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white gap-2"
                     >
                       <Plus className="w-5 h-5" />
@@ -202,7 +202,9 @@ function Journal() {
                       transition={{ delay: index * 0.05 }}
                     >
                       <Card
-                        onClick={() => setSelectedEntry(selectedEntry?.id === entry.id ? null : entry)}
+                        onClick={() =>
+                          setSelectedEntry(selectedEntry?.id === entry.id ? null : entry)
+                        }
                         className="p-6 border-2 border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all cursor-pointer"
                       >
                         <div className="flex items-start justify-between gap-4">
@@ -221,11 +223,13 @@ function Journal() {
                         {selectedEntry?.id === entry.id && (
                           <motion.div
                             initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
+                            animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
                             className="mt-4 pt-4 border-t border-gray-200"
                           >
-                            <p className="text-gray-700 whitespace-pre-wrap mb-4">{entry.content}</p>
+                            <p className="text-gray-700 whitespace-pre-wrap mb-4">
+                              {entry.content}
+                            </p>
                             <Button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -245,19 +249,21 @@ function Journal() {
                 </div>
               )}
 
-              {/* Information Footer */}
               <Card className="p-6 bg-gradient-to-r from-indigo-50 to-purple-50 border-2 border-indigo-200">
                 <h3 className="font-semibold text-gray-800 mb-3">About Your Privacy</h3>
                 <ul className="space-y-2 text-sm text-gray-700">
                   <li className="flex gap-2">
                     <span>🔒</span>
                     <span>
-                      All entries are encrypted locally using a client-side XOR cipher before storage
+                      All entries are encrypted locally using a client-side XOR cipher before
+                      storage
                     </span>
                   </li>
                   <li className="flex gap-2">
                     <span>📱</span>
-                    <span>Data is stored only in your browser's local storage—never uploaded anywhere</span>
+                    <span>
+                      Data is stored only in your browser's local storage—never uploaded anywhere
+                    </span>
                   </li>
                   <li className="flex gap-2">
                     <span>🗑️</span>
@@ -272,98 +278,6 @@ function Journal() {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
-    </div>
-  );
-}
-
-  return (
-    <div className="grid lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-semibold tracking-tight">Journal</h1>
-          <button className="glass rounded-full px-4 py-2 text-sm flex items-center gap-2">
-            <Plus className="h-4 w-4" /> New entry
-          </button>
-        </div>
-
-        <div className="glass rounded-2xl px-4 py-3 flex items-center gap-2">
-          <Search className="h-4 w-4 text-muted-foreground" />
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search entries…"
-            className="bg-transparent outline-none flex-1 text-sm"
-          />
-        </div>
-
-        <div className="glass-strong rounded-3xl p-5">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-            <span className="glass rounded-full px-2 py-0.5">Today</span>
-            <span>·</span>
-            <span>🌤️ mood: 7</span>
-          </div>
-          <textarea
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            rows={5}
-            placeholder="What's on your mind?"
-            className="w-full bg-transparent outline-none text-lg leading-relaxed resize-none placeholder:text-muted-foreground"
-          />
-          <div className="flex items-center justify-between mt-4">
-            <div className="flex gap-2 text-xs text-muted-foreground">
-              <span className="glass rounded-full px-2.5 py-1">B</span>
-              <span className="glass rounded-full px-2.5 py-1 italic">i</span>
-              <span className="glass rounded-full px-2.5 py-1">•</span>
-            </div>
-            <button className="rounded-full bg-white text-black text-sm px-4 py-1.5">
-              Save entry
-            </button>
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          {entries.map((e, i) => (
-            <motion.div
-              key={e.id}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              className="glass rounded-2xl p-5 hover:bg-white/[0.07] transition"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">{e.mood}</span>
-                  <div className="font-medium">{e.title}</div>
-                  {e.pinned && <Pin className="h-3.5 w-3.5 text-fuchsia-300" />}
-                </div>
-                <span className="text-xs text-muted-foreground">{String(e.date)}</span>
-              </div>
-              <p className="mt-2 text-sm text-muted-foreground">{e.excerpt}</p>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        <div className="glass-strong rounded-3xl p-6">
-          <div className="flex items-center gap-2 text-sm">
-            <Sparkles className="h-4 w-4 text-fuchsia-300" /> AI summary
-          </div>
-          <p className="mt-3 text-sm leading-relaxed">
-            You've written 12 entries this month. Words that appeared most:{" "}
-            <span className="text-foreground font-medium">
-              rest, exams, friends, tired, gratitude
-            </span>
-            . Your calmest days followed morning walks.
-          </p>
-          <button className="mt-4 text-xs text-fuchsia-300">Generate deeper insights →</button>
-        </div>
-        <div className="glass rounded-3xl p-6">
-          <div className="text-sm text-muted-foreground">Streak</div>
-          <div className="mt-2 text-3xl font-semibold">🔥 9 days</div>
-          <p className="text-xs text-muted-foreground mt-1">Keep going — 5 more for a badge.</p>
-        </div>
       </div>
     </div>
   );

@@ -1,23 +1,24 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, RotateCcw, CheckCircle } from 'lucide-react';
+import { createFileRoute } from "@tanstack/react-router";
+import { useState, useEffect, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowRight, RotateCcw, CheckCircle } from "lucide-react";
 import {
   getUniqueAssessmentQuestions,
   calculateMentalScores,
   getDimensionInterpretation,
-} from '@/lib/assessment-questions';
-import { saveAssessmentResult } from '@/lib/storage-utils';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
+  type AssessmentQuestion,
+} from "@/lib/assessment-questions";
+import { saveAssessmentResult } from "@/lib/storage-utils";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 
-export const Route = createFileRoute('/mind-score')({
+export const Route = createFileRoute("/mind-score")({
   component: MindScoreAssessment,
-  head: () => ({ meta: [{ title: 'Mind Score Assessment · MindSphere' }] }),
+  head: () => ({ meta: [{ title: "Mind Score Assessment · MindSphere" }] }),
 });
 
-type ViewMode = 'questions' | 'results';
+type ViewMode = "questions" | "results";
 
 interface DimensionScore {
   name: string;
@@ -27,11 +28,11 @@ interface DimensionScore {
 }
 
 function MindScoreAssessment() {
-  const [viewMode, setViewMode] = useState<ViewMode>('questions');
+  const [viewMode, setViewMode] = useState<ViewMode>("questions");
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
   const [scores, setScores] = useState<Record<string, number> | null>(null);
-  const [questions, setQuestions] = useState<any[]>([]);
+  const [questions, setQuestions] = useState<AssessmentQuestion[]>([]);
 
   // Initialize assessment
   useEffect(() => {
@@ -41,7 +42,7 @@ function MindScoreAssessment() {
 
   const progress = useMemo(
     () => (questions.length > 0 ? (answers.length / questions.length) * 100 : 0),
-    [answers, questions]
+    [answers, questions],
   );
 
   const isComplete = answers.length === questions.length;
@@ -57,12 +58,12 @@ function MindScoreAssessment() {
       const calculatedScores = calculateMentalScores(questions, newAnswers);
       setScores(calculatedScores);
       saveAssessmentResult(calculatedScores);
-      setViewMode('results');
+      setViewMode("results");
     }
   };
 
   const handleReset = () => {
-    setViewMode('questions');
+    setViewMode("questions");
     setCurrentQ(0);
     setAnswers([]);
     setScores(null);
@@ -74,28 +75,28 @@ function MindScoreAssessment() {
     if (!scores) return [];
     return [
       {
-        name: 'Emotional Resilience',
+        name: "Emotional Resilience",
         value: scores.emotional_resilience || 0,
-        color: 'from-red-400 to-pink-500',
-        icon: '💫',
+        color: "from-red-400 to-pink-500",
+        icon: "💫",
       },
       {
-        name: 'Focus & Clarity',
+        name: "Focus & Clarity",
         value: scores.focus_clarity || 0,
-        color: 'from-blue-400 to-cyan-500',
-        icon: '🎯',
+        color: "from-blue-400 to-cyan-500",
+        icon: "🎯",
       },
       {
-        name: 'Stress Balance',
+        name: "Stress Balance",
         value: scores.stress_balance || 0,
-        color: 'from-green-400 to-emerald-500',
-        icon: '🌿',
+        color: "from-green-400 to-emerald-500",
+        icon: "🌿",
       },
       {
-        name: 'Social Harmony',
+        name: "Social Harmony",
         value: scores.social_harmony || 0,
-        color: 'from-purple-400 to-indigo-500',
-        icon: '🤝',
+        color: "from-purple-400 to-indigo-500",
+        icon: "🤝",
       },
     ];
   }, [scores]);
@@ -111,7 +112,7 @@ function MindScoreAssessment() {
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
-        {viewMode === 'questions' ? (
+        {viewMode === "questions" ? (
           <>
             {/* Header */}
             <div className="mb-8 text-center">
@@ -161,7 +162,9 @@ function MindScoreAssessment() {
                         className="w-full p-4 text-left rounded-lg border-2 border-gray-200 bg-white hover:border-purple-400 hover:bg-purple-50 transition-all font-medium text-gray-700"
                       >
                         <div className="flex items-center gap-3">
-                          <span className="text-purple-600 font-bold">{String.fromCharCode(65 + idx)}.</span>
+                          <span className="text-purple-600 font-bold">
+                            {String.fromCharCode(65 + idx)}.
+                          </span>
                           <span>{option}</span>
                         </div>
                       </motion.button>
@@ -191,7 +194,7 @@ function MindScoreAssessment() {
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 200 }}
+                  transition={{ type: "spring", stiffness: 200 }}
                   className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full mb-6"
                 >
                   <CheckCircle className="w-8 h-8 text-white" />
@@ -223,9 +226,7 @@ function MindScoreAssessment() {
                           <span className="text-4xl">{dim.icon}</span>
                         </div>
                         <Progress value={dim.value} className="h-2 mb-4" />
-                        <p className="text-sm text-gray-700">
-                          {getScoreLabel(dim.value)}
-                        </p>
+                        <p className="text-sm text-gray-700">{getScoreLabel(dim.value)}</p>
                       </div>
                     </Card>
                   </motion.div>
@@ -245,10 +246,8 @@ function MindScoreAssessment() {
                       <h3 className="text-lg font-bold text-gray-800 mb-3">{dim.name}</h3>
                       <p className="text-gray-700 leading-relaxed">
                         {getDimensionInterpretation(
-                          dim.name
-                            .toLowerCase()
-                            .replace(/\s+/g, '_'),
-                          dim.value
+                          dim.name.toLowerCase().replace(/\s+/g, "_"),
+                          dim.value,
                         )}
                       </p>
                     </Card>
@@ -269,16 +268,12 @@ function MindScoreAssessment() {
                     your assessment, or try our mindful games to practice focus and calm.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Button
-                      onClick={handleReset}
-                      variant="outline"
-                      className="gap-2"
-                    >
+                    <Button onClick={handleReset} variant="outline" className="gap-2">
                       <RotateCcw className="w-4 h-4" />
                       Retake Assessment
                     </Button>
                     <Button
-                      onClick={() => (window.location.href = '/melody-of-life')}
+                      onClick={() => (window.location.href = "/melody-of-life")}
                       className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white gap-2"
                     >
                       Explore Your Path
@@ -296,8 +291,8 @@ function MindScoreAssessment() {
 }
 
 function getScoreLabel(score: number): string {
-  if (score < 35) return 'Needs attention and support';
-  if (score < 55) return 'Developing, with room for growth';
-  if (score < 75) return 'Good foundation, keep building';
-  return 'Strong and healthy';
+  if (score < 35) return "Needs attention and support";
+  if (score < 55) return "Developing, with room for growth";
+  if (score < 75) return "Good foundation, keep building";
+  return "Strong and healthy";
 }

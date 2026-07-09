@@ -15,28 +15,3 @@ function Dashboard() {
     </div>
   );
 }
-
-      {/* Stats Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <MoodTodayCard />
-        <WellnessScoreCard />
-        <XPCard />
-        <FocusCard />
-      </div>
-
-      {/* Mood Timeline and Mind Galaxy */}
-      <div className="grid lg:grid-cols-3 gap-4">
-        <InteractiveMoodTimeline />
-        <InteractiveMindGalaxy />
-      </div>
-
-      {/* Daily Goals, Achievements, Recommendations */}
-      <div className="grid lg:grid-cols-3 gap-4">
-        <InteractiveDailyGoals />
-        <EnhancedAchievements />
-        <SmartRecommendations />
-      </div>
-    </div>
-  );
-}
-

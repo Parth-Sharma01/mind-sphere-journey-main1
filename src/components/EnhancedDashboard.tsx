@@ -1,15 +1,40 @@
-import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Card } from '@/components/ui/card';
-import { Link } from '@tanstack/react-router';
-import { ArrowRight, TrendingUp, Brain, Target, Zap } from 'lucide-react';
-import { getAssessmentHistory } from '@/lib/storage-utils';
-import { loadMelodyOfLifeData } from '@/lib/storage-utils';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { Card } from "@/components/ui/card";
+import { Link } from "@tanstack/react-router";
+import { ArrowRight, TrendingUp, Brain, Target, Zap } from "lucide-react";
+import { getAssessmentHistory } from "@/lib/storage-utils";
+import { loadMelodyOfLifeData } from "@/lib/storage-utils";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+} from "recharts";
 
 export function EnhancedDashboard() {
-  const [assessmentHistory, setAssessmentHistory] = useState<any[]>([]);
-  const [melodyData, setMelodyData] = useState<any>(null);
+  type AssessmentHistoryEntry = {
+    scores: {
+      emotional_resilience: number;
+      focus_clarity: number;
+      stress_balance: number;
+      social_harmony: number;
+    };
+  };
+
+  type MelodyOfLifeData = {
+    examType?: string;
+    preprationWhy?: string;
+    trueAmbition?: string;
+  };
+
+  const [assessmentHistory, setAssessmentHistory] = useState<AssessmentHistoryEntry[]>([]);
+  const [melodyData, setMelodyData] = useState<MelodyOfLifeData | null>(null);
   const [latestScores, setLatestScores] = useState<Record<string, number> | null>(null);
 
   useEffect(() => {
@@ -27,19 +52,19 @@ export function EnhancedDashboard() {
   }, []);
 
   // Prepare chart data
-  const chartData = assessmentHistory.slice(-10).map((entry: any, idx: number) => ({
+  const chartData = assessmentHistory.slice(-10).map((entry, idx) => ({
     index: idx + 1,
-    'Emotional Resilience': entry.scores.emotional_resilience,
-    'Focus & Clarity': entry.scores.focus_clarity,
-    'Stress Balance': entry.scores.stress_balance,
-    'Social Harmony': entry.scores.social_harmony,
+    "Emotional Resilience": entry.scores.emotional_resilience,
+    "Focus & Clarity": entry.scores.focus_clarity,
+    "Stress Balance": entry.scores.stress_balance,
+    "Social Harmony": entry.scores.social_harmony,
   }));
 
   const dimensionColors = {
-    'Emotional Resilience': '#ef4444',
-    'Focus & Clarity': '#3b82f6',
-    'Stress Balance': '#10b981',
-    'Social Harmony': '#a855f7',
+    "Emotional Resilience": "#ef4444",
+    "Focus & Clarity": "#3b82f6",
+    "Stress Balance": "#10b981",
+    "Social Harmony": "#a855f7",
   };
 
   return (
@@ -70,13 +95,13 @@ export function EnhancedDashboard() {
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              {Object.entries(latestScores).map(([key, value]: [string, any]) => {
-                const formatted = key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+              {Object.entries(latestScores).map(([key, value]) => {
+                const formatted = key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
                 const getColor = (v: number) => {
-                  if (v < 35) return 'from-red-400 to-rose-500';
-                  if (v < 55) return 'from-yellow-400 to-orange-500';
-                  if (v < 75) return 'from-blue-400 to-cyan-500';
-                  return 'from-green-400 to-emerald-500';
+                  if (v < 35) return "from-red-400 to-rose-500";
+                  if (v < 55) return "from-yellow-400 to-orange-500";
+                  if (v < 75) return "from-blue-400 to-cyan-500";
+                  return "from-green-400 to-emerald-500";
                 };
 
                 return (
@@ -125,28 +150,28 @@ export function EnhancedDashboard() {
                 <Line
                   type="monotone"
                   dataKey="Emotional Resilience"
-                  stroke={dimensionColors['Emotional Resilience']}
+                  stroke={dimensionColors["Emotional Resilience"]}
                   strokeWidth={2}
                   dot={{ r: 4 }}
                 />
                 <Line
                   type="monotone"
                   dataKey="Focus & Clarity"
-                  stroke={dimensionColors['Focus & Clarity']}
+                  stroke={dimensionColors["Focus & Clarity"]}
                   strokeWidth={2}
                   dot={{ r: 4 }}
                 />
                 <Line
                   type="monotone"
                   dataKey="Stress Balance"
-                  stroke={dimensionColors['Stress Balance']}
+                  stroke={dimensionColors["Stress Balance"]}
                   strokeWidth={2}
                   dot={{ r: 4 }}
                 />
                 <Line
                   type="monotone"
                   dataKey="Social Harmony"
-                  stroke={dimensionColors['Social Harmony']}
+                  stroke={dimensionColors["Social Harmony"]}
                   strokeWidth={2}
                   dot={{ r: 4 }}
                 />
@@ -170,7 +195,7 @@ export function EnhancedDashboard() {
             </div>
 
             <div className="space-y-4">
-              {melodyData.examType && melodyData.examType !== 'None' && (
+              {melodyData.examType && melodyData.examType !== "None" && (
                 <div>
                   <p className="text-sm text-gray-600 uppercase tracking-wide mb-1">Preparation</p>
                   <p className="text-lg font-semibold text-gray-800">{melodyData.examType}</p>
@@ -186,7 +211,9 @@ export function EnhancedDashboard() {
 
               {melodyData.trueAmbition && (
                 <div>
-                  <p className="text-sm text-gray-600 uppercase tracking-wide mb-1">Your Ambition</p>
+                  <p className="text-sm text-gray-600 uppercase tracking-wide mb-1">
+                    Your Ambition
+                  </p>
                   <p className="text-base text-gray-700">"{melodyData.trueAmbition}"</p>
                 </div>
               )}

@@ -13,7 +13,10 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as MoodRouteImport } from './routes/mood'
+import { Route as MindScoreRouteImport } from './routes/mind-score'
+import { Route as MelodyOfLifeRouteImport } from './routes/melody-of-life'
 import { Route as MeditationRouteImport } from './routes/meditation'
+import { Route as JournalNewRouteImport } from './routes/journal-new'
 import { Route as JournalRouteImport } from './routes/journal'
 import { Route as GamesRouteImport } from './routes/games'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -42,9 +45,24 @@ const MoodRoute = MoodRouteImport.update({
   path: '/mood',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MindScoreRoute = MindScoreRouteImport.update({
+  id: '/mind-score',
+  path: '/mind-score',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MelodyOfLifeRoute = MelodyOfLifeRouteImport.update({
+  id: '/melody-of-life',
+  path: '/melody-of-life',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MeditationRoute = MeditationRouteImport.update({
   id: '/meditation',
   path: '/meditation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JournalNewRoute = JournalNewRouteImport.update({
+  id: '/journal-new',
+  path: '/journal-new',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JournalRoute = JournalRouteImport.update({
@@ -91,7 +109,10 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/games': typeof GamesRoute
   '/journal': typeof JournalRoute
+  '/journal-new': typeof JournalNewRoute
   '/meditation': typeof MeditationRoute
+  '/melody-of-life': typeof MelodyOfLifeRoute
+  '/mind-score': typeof MindScoreRoute
   '/mood': typeof MoodRoute
   '/pricing': typeof PricingRoute
   '/profile': typeof ProfileRoute
@@ -105,7 +126,10 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/games': typeof GamesRoute
   '/journal': typeof JournalRoute
+  '/journal-new': typeof JournalNewRoute
   '/meditation': typeof MeditationRoute
+  '/melody-of-life': typeof MelodyOfLifeRoute
+  '/mind-score': typeof MindScoreRoute
   '/mood': typeof MoodRoute
   '/pricing': typeof PricingRoute
   '/profile': typeof ProfileRoute
@@ -120,7 +144,10 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/games': typeof GamesRoute
   '/journal': typeof JournalRoute
+  '/journal-new': typeof JournalNewRoute
   '/meditation': typeof MeditationRoute
+  '/melody-of-life': typeof MelodyOfLifeRoute
+  '/mind-score': typeof MindScoreRoute
   '/mood': typeof MoodRoute
   '/pricing': typeof PricingRoute
   '/profile': typeof ProfileRoute
@@ -136,7 +163,10 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/games'
     | '/journal'
+    | '/journal-new'
     | '/meditation'
+    | '/melody-of-life'
+    | '/mind-score'
     | '/mood'
     | '/pricing'
     | '/profile'
@@ -150,7 +180,10 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/games'
     | '/journal'
+    | '/journal-new'
     | '/meditation'
+    | '/melody-of-life'
+    | '/mind-score'
     | '/mood'
     | '/pricing'
     | '/profile'
@@ -164,7 +197,10 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/games'
     | '/journal'
+    | '/journal-new'
     | '/meditation'
+    | '/melody-of-life'
+    | '/mind-score'
     | '/mood'
     | '/pricing'
     | '/profile'
@@ -179,7 +215,10 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   GamesRoute: typeof GamesRoute
   JournalRoute: typeof JournalRoute
+  JournalNewRoute: typeof JournalNewRoute
   MeditationRoute: typeof MeditationRoute
+  MelodyOfLifeRoute: typeof MelodyOfLifeRoute
+  MindScoreRoute: typeof MindScoreRoute
   MoodRoute: typeof MoodRoute
   PricingRoute: typeof PricingRoute
   ProfileRoute: typeof ProfileRoute
@@ -216,11 +255,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MoodRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/mind-score': {
+      id: '/mind-score'
+      path: '/mind-score'
+      fullPath: '/mind-score'
+      preLoaderRoute: typeof MindScoreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/melody-of-life': {
+      id: '/melody-of-life'
+      path: '/melody-of-life'
+      fullPath: '/melody-of-life'
+      preLoaderRoute: typeof MelodyOfLifeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/meditation': {
       id: '/meditation'
       path: '/meditation'
       fullPath: '/meditation'
       preLoaderRoute: typeof MeditationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/journal-new': {
+      id: '/journal-new'
+      path: '/journal-new'
+      fullPath: '/journal-new'
+      preLoaderRoute: typeof JournalNewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/journal': {
@@ -283,7 +343,10 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   GamesRoute: GamesRoute,
   JournalRoute: JournalRoute,
+  JournalNewRoute: JournalNewRoute,
   MeditationRoute: MeditationRoute,
+  MelodyOfLifeRoute: MelodyOfLifeRoute,
+  MindScoreRoute: MindScoreRoute,
   MoodRoute: MoodRoute,
   PricingRoute: PricingRoute,
   ProfileRoute: ProfileRoute,

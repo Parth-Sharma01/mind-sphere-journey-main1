@@ -1,19 +1,26 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Heart, Sparkles, ArrowRight, ChevronLeft } from 'lucide-react';
-import { saveMelodyOfLifeData, loadMelodyOfLifeData } from '@/lib/storage-utils';
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Heart, Sparkles, ArrowRight, ChevronLeft } from "lucide-react";
+import { saveMelodyOfLifeData, loadMelodyOfLifeData } from "@/lib/storage-utils";
 
-type Step = 'exam' | 'why' | 'ambition' | 'result';
+type Step = "exam" | "why" | "ambition" | "result";
 
 export function MeLodyOfLifeSection() {
-  const [step, setStep] = useState<Step>('exam');
-  const [examType, setExamType] = useState('');
-  const [preprationWhy, setPreprationWhy] = useState('');
-  const [trueAmbition, setTrueAmbition] = useState('');
-  const [savedData, setSavedData] = useState<any>(null);
+  const [step, setStep] = useState<Step>("exam");
+  const [examType, setExamType] = useState("");
+  const [preprationWhy, setPreprationWhy] = useState("");
+  const [trueAmbition, setTrueAmbition] = useState("");
+  type MelodyOfLifeData = {
+    examType?: string;
+    preprationWhy?: string;
+    trueAmbition?: string;
+    savedAt?: string;
+  };
+
+  const [savedData, setSavedData] = useState<MelodyOfLifeData | null>(null);
 
   useEffect(() => {
     const data = loadMelodyOfLifeData();
@@ -23,35 +30,35 @@ export function MeLodyOfLifeSection() {
   }, []);
 
   const examOptions = [
-    { value: 'NEET', label: 'NEET (Medical)' },
-    { value: 'JEE', label: 'JEE (Engineering)' },
-    { value: 'UPSC', label: 'UPSC (Civil Services)' },
-    { value: 'CAT', label: 'CAT (Management)' },
-    { value: 'GATE', label: 'GATE (Engineering)' },
-    { value: 'Other', label: 'Other Competitive Exam' },
-    { value: 'None', label: 'Not preparing for competitive exams' },
+    { value: "NEET", label: "NEET (Medical)" },
+    { value: "JEE", label: "JEE (Engineering)" },
+    { value: "UPSC", label: "UPSC (Civil Services)" },
+    { value: "CAT", label: "CAT (Management)" },
+    { value: "GATE", label: "GATE (Engineering)" },
+    { value: "Other", label: "Other Competitive Exam" },
+    { value: "None", label: "Not preparing for competitive exams" },
   ];
 
   const handleNext = () => {
-    if (step === 'exam' && examType) {
-      setStep('why');
-    } else if (step === 'why' && preprationWhy) {
-      setStep('ambition');
-    } else if (step === 'ambition' && trueAmbition) {
+    if (step === "exam" && examType) {
+      setStep("why");
+    } else if (step === "why" && preprationWhy) {
+      setStep("ambition");
+    } else if (step === "ambition" && trueAmbition) {
       saveMelodyOfLifeData({ examType, preprationWhy, trueAmbition });
       setSavedData({ examType, preprationWhy, trueAmbition });
-      setStep('result');
+      setStep("result");
     }
   };
 
   const handleReset = () => {
-    setStep('exam');
-    setExamType('');
-    setPreprationWhy('');
-    setTrueAmbition('');
+    setStep("exam");
+    setExamType("");
+    setPreprationWhy("");
+    setTrueAmbition("");
   };
 
-  if (savedData && step === 'result') {
+  if (savedData && step === "result") {
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -63,7 +70,7 @@ export function MeLodyOfLifeSection() {
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              transition={{ type: 'spring', stiffness: 200 }}
+              transition={{ type: "spring", stiffness: 200 }}
               className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full mb-6"
             >
               <Heart className="w-8 h-8 text-white" />
@@ -83,7 +90,7 @@ export function MeLodyOfLifeSection() {
             even if it feels like you're against the world. Your path is yours to create."
           </motion.p>
 
-          {examType !== 'None' && (
+          {examType !== "None" && (
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -118,16 +125,12 @@ export function MeLodyOfLifeSection() {
               why you started.
             </p>
             <div className="flex gap-4 justify-center pt-4">
-              <Button
-                onClick={handleReset}
-                variant="outline"
-                className="gap-2"
-              >
+              <Button onClick={handleReset} variant="outline" className="gap-2">
                 <ChevronLeft className="w-4 h-4" />
                 Edit Your Journey
               </Button>
               <Button
-                onClick={() => setStep('result')}
+                onClick={() => setStep("result")}
                 className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white gap-2"
               >
                 <Sparkles className="w-4 h-4" />
@@ -148,7 +151,7 @@ export function MeLodyOfLifeSection() {
     >
       <Card className="border-2 border-purple-200 p-8 md:p-12 bg-gradient-to-br from-white to-purple-50">
         <AnimatePresence mode="wait">
-          {step === 'exam' && (
+          {step === "exam" && (
             <motion.div
               key="exam"
               initial={{ opacity: 0, x: 50 }}
@@ -173,16 +176,16 @@ export function MeLodyOfLifeSection() {
                     whileHover={{ scale: 1.02 }}
                     className={`p-4 rounded-lg border-2 text-left transition-all font-medium ${
                       examType === option.value
-                        ? 'border-purple-500 bg-purple-100 text-purple-900'
-                        : 'border-gray-200 bg-white text-gray-700 hover:border-purple-300'
+                        ? "border-purple-500 bg-purple-100 text-purple-900"
+                        : "border-gray-200 bg-white text-gray-700 hover:border-purple-300"
                     }`}
                   >
                     <span className="flex items-center gap-3">
                       <span
                         className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
                           examType === option.value
-                            ? 'border-purple-500 bg-purple-500'
-                            : 'border-gray-300'
+                            ? "border-purple-500 bg-purple-500"
+                            : "border-gray-300"
                         }`}
                       >
                         {examType === option.value && (
@@ -197,7 +200,7 @@ export function MeLodyOfLifeSection() {
             </motion.div>
           )}
 
-          {step === 'why' && (
+          {step === "why" && (
             <motion.div
               key="why"
               initial={{ opacity: 0, x: 50 }}
@@ -220,13 +223,11 @@ export function MeLodyOfLifeSection() {
                 onChange={(e) => setPreprationWhy(e.target.value.slice(0, 150))}
                 className="h-24 mb-4 resize-none"
               />
-              <p className="text-xs text-gray-500 mb-6">
-                {preprationWhy.length}/150 characters
-              </p>
+              <p className="text-xs text-gray-500 mb-6">{preprationWhy.length}/150 characters</p>
             </motion.div>
           )}
 
-          {step === 'ambition' && (
+          {step === "ambition" && (
             <motion.div
               key="ambition"
               initial={{ opacity: 0, x: 50 }}
@@ -250,19 +251,17 @@ export function MeLodyOfLifeSection() {
                 onChange={(e) => setTrueAmbition(e.target.value.slice(0, 500))}
                 className="h-32 mb-4 resize-none"
               />
-              <p className="text-xs text-gray-500 mb-6">
-                {trueAmbition.length}/500 characters
-              </p>
+              <p className="text-xs text-gray-500 mb-6">{trueAmbition.length}/500 characters</p>
             </motion.div>
           )}
         </AnimatePresence>
 
         <div className="flex gap-4 justify-between pt-6 border-t border-gray-200">
-          {step !== 'exam' && (
+          {step !== "exam" && (
             <Button
               onClick={() => {
-                if (step === 'why') setStep('exam');
-                if (step === 'ambition') setStep('why');
+                if (step === "why") setStep("exam");
+                if (step === "ambition") setStep("why");
               }}
               variant="outline"
               className="gap-2"
@@ -275,13 +274,13 @@ export function MeLodyOfLifeSection() {
           <Button
             onClick={handleNext}
             disabled={
-              (step === 'exam' && !examType) ||
-              (step === 'why' && !preprationWhy) ||
-              (step === 'ambition' && !trueAmbition)
+              (step === "exam" && !examType) ||
+              (step === "why" && !preprationWhy) ||
+              (step === "ambition" && !trueAmbition)
             }
             className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white gap-2 disabled:opacity-50"
           >
-            {step === 'ambition' ? 'Save My Journey' : 'Next'}
+            {step === "ambition" ? "Save My Journey" : "Next"}
             <ArrowRight className="w-4 h-4" />
           </Button>
         </div>

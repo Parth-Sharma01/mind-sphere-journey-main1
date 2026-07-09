@@ -1,9 +1,9 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { GamesSection } from '@/components/GamesSection';
+import { createFileRoute } from "@tanstack/react-router";
+import { GamesSection } from "@/components/GamesSection";
 
-export const Route = createFileRoute('/games')({
+export const Route = createFileRoute("/games")({
   component: Games,
-  head: () => ({ meta: [{ title: 'Mindful Games · MindSphere' }] }),
+  head: () => ({ meta: [{ title: "Mindful Games · MindSphere" }] }),
 });
 
 function Games() {

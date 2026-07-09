@@ -3,12 +3,14 @@
 ## Option A: Deploy to Netlify (Recommended - 5 minutes)
 
 ### Prerequisites
+
 - GitHub account
 - Netlify account
 
 ### Steps
 
 #### 1. Push to GitHub
+
 ```powershell
 # Navigate to project directory
 cd "c:\Users\sampl\Downloads\mind-sphere-journey-main\mind-sphere-journey-main"
@@ -25,6 +27,7 @@ git push -u origin main
 ```
 
 #### 2. Deploy with Netlify
+
 1. Go to https://app.netlify.com/
 2. Click "Add new site" → "Import an existing project"
 3. Connect GitHub account
@@ -39,15 +42,18 @@ git push -u origin main
 ## Option B: Deploy to Vercel (Also Easy - 5 minutes)
 
 ### Prerequisites
+
 - GitHub account
 - Vercel account
 
 ### Steps
 
 #### 1. Push to GitHub
+
 Same as Option A, Step 1
 
 #### 2. Deploy with Vercel
+
 1. Go to https://vercel.com/
 2. Click "Add New" → "Project"
 3. Connect GitHub account
@@ -62,14 +68,17 @@ Same as Option A, Step 1
 ## Option C: Deploy to GitHub Pages (Free - 10 minutes)
 
 ### Prerequisites
+
 - GitHub account (public repository)
 
 ### Steps
 
 #### 1. Push to GitHub
+
 Same as Option A, Step 1
 
 #### 2. Enable GitHub Pages
+
 1. Go to your GitHub repository
 2. Settings → Pages
 3. Source: Deploy from a branch
@@ -78,7 +87,9 @@ Same as Option A, Step 1
 6. Save
 
 #### 3. Create Workflow
+
 Already created at `.github/workflows/deploy-netlify.yml`
+
 - Automatically builds and deploys on push
 - **Done!** ✨ Your site is live
 
@@ -130,15 +141,19 @@ After deployment, verify:
 ## Common Issues & Solutions
 
 ### Issue: GitHub push fails
+
 **Solution:** Make sure you created repo on GitHub first, then copy the URL
 
 ### Issue: Build fails on deployment platform
+
 **Solution:** Check the platform's logs - usually a missing dependency. Run `npm run build` locally first
 
 ### Issue: Routes show 404
+
 **Solution:** Platform should handle SPA routing via netlify.toml - verify file exists
 
 ### Issue: Data not persisting
+
 **Solution:** Check browser console for localStorage errors. This is expected for new deployments.
 
 ---
@@ -148,9 +163,11 @@ After deployment, verify:
 Most hosting platforms support environment variables. You can add them via:
 
 **Netlify:**
+
 - Site settings → Build & deploy → Environment
 
 **Vercel:**
+
 - Settings → Environment Variables
 
 For MindSphere (no backend needed), environment variables are optional.
@@ -170,14 +187,17 @@ For MindSphere (no backend needed), environment variables are optional.
 ## Custom Domain Setup (Optional)
 
 **Netlify:**
+
 1. Site settings → Domain management → Add custom domain
 2. Update DNS at your domain registrar
 
 **Vercel:**
+
 1. Settings → Domains → Add domain
 2. Follow DNS instructions
 
 **GitHub Pages:**
+
 1. Settings → Pages → Custom domain
 2. Update DNS CNAME record
 
@@ -192,4 +212,3 @@ For MindSphere (no backend needed), environment variables are optional.
 ---
 
 **Choose your platform above and follow the steps. Your app will be live in 5-15 minutes!** 🚀
-

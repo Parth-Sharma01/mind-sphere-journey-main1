@@ -1,9 +1,9 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { MeLodyOfLifeSection } from '@/components/MeLodyOfLifeSection';
+import { createFileRoute } from "@tanstack/react-router";
+import { MeLodyOfLifeSection } from "@/components/MeLodyOfLifeSection";
 
-export const Route = createFileRoute('/melody-of-life')({
+export const Route = createFileRoute("/melody-of-life")({
   component: MeLodyOfLife,
-  head: () => ({ meta: [{ title: 'MeLodY OfLife · MindSphere' }] }),
+  head: () => ({ meta: [{ title: "MeLodY OfLife · MindSphere" }] }),
 });
 
 function MeLodyOfLife() {

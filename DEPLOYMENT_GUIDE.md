@@ -8,25 +8,27 @@ Complete guide to deploy MindSphere to a live server. Multiple options available
 
 Your application is ready for deployment! Choose your preferred platform:
 
-| Platform | Difficulty | Cost | Best For |
-|----------|-----------|------|----------|
-| **Netlify** | ⭐ Easiest | Free | Recommended - Perfect for React apps |
-| **Vercel** | ⭐ Easiest | Free | Optimized for React/Next.js |
-| **GitHub Pages** | ⭐⭐ Medium | Free | Simple static hosting |
-| **Cloudflare Pages** | ⭐⭐ Medium | Free | Global edge network |
-| **AWS S3 + CloudFront** | ⭐⭐⭐ Complex | Low cost | Enterprise solution |
+| Platform                | Difficulty     | Cost     | Best For                             |
+| ----------------------- | -------------- | -------- | ------------------------------------ |
+| **Netlify**             | ⭐ Easiest     | Free     | Recommended - Perfect for React apps |
+| **Vercel**              | ⭐ Easiest     | Free     | Optimized for React/Next.js          |
+| **GitHub Pages**        | ⭐⭐ Medium    | Free     | Simple static hosting                |
+| **Cloudflare Pages**    | ⭐⭐ Medium    | Free     | Global edge network                  |
+| **AWS S3 + CloudFront** | ⭐⭐⭐ Complex | Low cost | Enterprise solution                  |
 
 ---
 
 ## 🎯 Option 1: Netlify (RECOMMENDED - Easiest)
 
 ### What You Need
+
 - GitHub account (free)
 - Netlify account (free)
 
 ### Step-by-Step Deployment
 
 #### 1. Push to GitHub
+
 ```powershell
 cd "c:\Users\sampl\Downloads\mind-sphere-journey-main\mind-sphere-journey-main"
 git init
@@ -38,11 +40,13 @@ git push -u origin main
 ```
 
 #### 2. Create Netlify Account
+
 - Go to [https://app.netlify.com/signup](https://app.netlify.com/signup)
 - Sign up with GitHub (click "Sign up with GitHub")
 - Authorize Netlify
 
 #### 3. Connect Repository
+
 1. Click "Add new site"
 2. Select "Import an existing project"
 3. Choose GitHub from the options
@@ -51,6 +55,7 @@ git push -u origin main
 6. Click "Deploy site"
 
 #### 4. Wait for Deployment
+
 - Netlify will automatically:
   - Install dependencies
   - Build your app
@@ -58,6 +63,7 @@ git push -u origin main
 - See your live site URL within 2-5 minutes ✨
 
 #### 5. Configure Custom Domain (Optional)
+
 1. In Netlify dashboard
 2. Go to "Site settings" → "Domain management"
 3. Add custom domain or use provided netlify.app subdomain
@@ -69,20 +75,24 @@ git push -u origin main
 ## 🎯 Option 2: Vercel (Also Easy)
 
 ### What You Need
+
 - GitHub account (free)
 - Vercel account (free)
 
 ### Step-by-Step Deployment
 
 #### 1. Push to GitHub
+
 Same as Netlify (see Option 1, Step 1)
 
 #### 2. Create Vercel Account
+
 - Go to [https://vercel.com/signup](https://vercel.com/signup)
 - Click "Continue with GitHub"
 - Authorize Vercel
 
 #### 3. Import Project
+
 1. Click "Add New..."
 2. Select "Project"
 3. Choose your `mind-sphere` GitHub repository
@@ -90,12 +100,14 @@ Same as Netlify (see Option 1, Step 1)
 5. Click "Deploy"
 
 #### 4. Configure Environment
+
 - Framework: Vite (auto-detected)
 - Output Directory: dist
 - Build Command: npm run build
 - Leave as default ✓
 
 #### 5. Deployment Complete
+
 - Site deployed within 1-3 minutes
 - Automatic deployments on future GitHub pushes
 
@@ -106,12 +118,14 @@ Same as Netlify (see Option 1, Step 1)
 ## 🎯 Option 3: GitHub Pages (Free Static Hosting)
 
 ### What You Need
+
 - GitHub account
 - Repository with GitHub Pages enabled
 
 ### Step-by-Step Deployment
 
 #### 1. Create GitHub Workflow
+
 File already created: `.github/workflows/deploy-netlify.yml`
 
 For GitHub Pages, update to:
@@ -128,15 +142,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
-      
+          node-version: "20"
+          cache: "npm"
+
       - run: npm ci
       - run: npm run build
-      
+
       - uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -144,6 +158,7 @@ jobs:
 ```
 
 #### 2. Push to GitHub
+
 ```powershell
 git add .
 git commit -m "Add GitHub Pages workflow"
@@ -151,6 +166,7 @@ git push origin main
 ```
 
 #### 3. Enable GitHub Pages
+
 1. Go to repository Settings
 2. Navigate to "Pages" section
 3. Select source: "Deploy from a branch"
@@ -158,6 +174,7 @@ git push origin main
 5. Click Save
 
 #### 4. Automatic Deployment
+
 - GitHub Actions will automatically build and deploy
 - Watch the "Actions" tab for deployment status
 
@@ -168,19 +185,23 @@ git push origin main
 ## 🎯 Option 4: Cloudflare Pages (Global CDN)
 
 ### What You Need
+
 - GitHub account
 - Cloudflare account (free)
 
 ### Step-by-Step Deployment
 
 #### 1. Push to GitHub
+
 Same as above
 
 #### 2. Create Cloudflare Account
+
 - Go to [https://pages.cloudflare.com](https://pages.cloudflare.com)
 - Sign up or login
 
 #### 3. Deploy via GitHub
+
 1. Click "Create a project"
 2. Select "Connect to Git"
 3. Authorize GitHub
@@ -188,12 +209,14 @@ Same as above
 5. Choose branch: main
 
 #### 4. Build Settings
+
 - Build command: `npm run build`
 - Build output directory: `dist`
 - Node version: 20
 - Click "Save and Deploy"
 
 #### 5. Deployment Complete
+
 **Your site will be live at:** `https://mind-sphere.pages.dev`
 
 ---
@@ -201,27 +224,32 @@ Same as above
 ## 🎯 Option 5: AWS S3 + CloudFront (Enterprise)
 
 ### What You Need
+
 - AWS account
 - AWS CLI installed
 
 ### Step-by-Step
 
 #### 1. Build Locally
+
 ```powershell
 npm run build
 ```
 
 #### 2. Create S3 Bucket
+
 ```powershell
 aws s3 mb s3://mind-sphere-app
 ```
 
 #### 3. Upload Build Files
+
 ```powershell
 aws s3 sync dist/ s3://mind-sphere-app/ --delete
 ```
 
 #### 4. Configure CloudFront
+
 - Create CloudFront distribution
 - Set S3 bucket as origin
 - Configure cache policy
@@ -279,21 +307,25 @@ After deployment, ensure:
 ## 🌐 Custom Domain Setup
 
 ### Netlify
+
 1. Site settings → Domain management
 2. Add custom domain
 3. Update DNS records (Netlify provides instructions)
 
 ### Vercel
+
 1. Settings → Domains
 2. Add domain
 3. Follow DNS instructions
 
 ### GitHub Pages
+
 1. Settings → Pages
 2. Add custom domain
 3. Update DNS CNAME record
 
 ### Cloudflare Pages
+
 1. Custom domain in Cloudflare dashboard
 2. Update nameservers at domain registrar
 
@@ -302,15 +334,19 @@ After deployment, ensure:
 ## 📊 Monitoring & Analytics
 
 ### Netlify Analytics
+
 - Built into Netlify dashboard
 - View traffic, top pages, errors
 
 ### Vercel Analytics
+
 - Built into Vercel dashboard
 - Performance metrics, deployments
 
 ### Google Analytics (Optional)
+
 Add to any deployment:
+
 1. Create Google Analytics account
 2. Add tracking code to `index.html` (if needed)
 3. View analytics in Google Analytics dashboard
@@ -320,19 +356,24 @@ Add to any deployment:
 ## 🆘 Troubleshooting
 
 ### Build Fails
+
 **Error:** `Command npm not found`
 **Solution:** Check Node.js version in platform settings (should be 20+)
 
 ### Routes Not Working
+
 **Error:** 404 on navigation
 **Solution:** Ensure `netlify.toml` redirects configured correctly
 
 ### Data Not Persisting
+
 **Error:** localStorage cleared on refresh
 **Solution:** Check browser developer tools, verify localStorage enabled
 
 ### Slow Performance
-**Solution:** 
+
+**Solution:**
+
 - Clear browser cache
 - Check bundle size in build output
 - Use platform's CDN (Netlify/Vercel include this)
@@ -391,20 +432,24 @@ After going live:
 ## 📞 Support Resources
 
 **Netlify:**
+
 - Documentation: https://docs.netlify.com/
 - Support: https://www.netlify.com/support/
 - Community: https://community.netlify.com/
 
 **Vercel:**
+
 - Documentation: https://vercel.com/docs
 - Support: https://vercel.com/support
 - Community: https://github.com/vercel/next.js/discussions
 
 **GitHub Pages:**
+
 - Documentation: https://pages.github.com/
 - Guides: https://docs.github.com/en/pages
 
 **Cloudflare Pages:**
+
 - Documentation: https://developers.cloudflare.com/pages/
 
 ---
@@ -412,27 +457,32 @@ After going live:
 ## 💡 Which Platform Should I Choose?
 
 **Choose Netlify if:**
+
 - You want the easiest setup
 - You want great documentation
 - You want built-in analytics
 - ✅ **RECOMMENDED**
 
 **Choose Vercel if:**
+
 - You like Vercel's interface
 - You want excellent performance
 - You plan to scale significantly
 
 **Choose GitHub Pages if:**
+
 - You want completely free hosting
 - Your code is open source
 - You don't need analytics
 
 **Choose Cloudflare Pages if:**
+
 - You need global edge network
 - You want better performance outside US
 - You're already on Cloudflare
 
 **Choose AWS if:**
+
 - You need enterprise features
 - You require specific compliance
 - You plan heavy traffic (100k+ requests/day)
@@ -440,6 +490,7 @@ After going live:
 ---
 
 **Configuration files included:**
+
 - ✅ `netlify.toml` - Ready for Netlify deployment
 - ✅ `.github/workflows/deploy-netlify.yml` - GitHub Actions
 - ✅ `vercel.json` - Ready for Vercel deployment

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { useTheme } from "@/components/AppShell";
 
 export const Route = createFileRoute("/settings")({
   component: Settings,
@@ -10,7 +11,7 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
   return (
     <button
       onClick={() => onChange(!on)}
-      className={`h-6 w-11 rounded-full transition ${on ? "bg-fuchsia-500" : "bg-white/15"} relative`}
+      className={`h-6 w-11 rounded-full transition ${on ? "bg-fuchsia-500" : "bg-gray-200 dark:bg-white/15"} relative`}
     >
       <span
         className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${on ? "left-5" : "left-0.5"}`}
@@ -20,7 +21,7 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
 }
 
 function Settings() {
-  const [dark, setDark] = useState(true);
+  const { theme, setTheme } = useTheme();
   const [notif, setNotif] = useState(true);
   const [privacy, setPrivacy] = useState(false);
   const [sounds, setSounds] = useState(true);
@@ -29,7 +30,7 @@ function Settings() {
     {
       title: "Appearance",
       items: [
-        { label: "Dark mode", state: dark, set: setDark },
+        { label: "Dark mode", state: theme === "dark", set: (isDark: boolean) => setTheme(isDark ? 'dark' : 'light') },
         { label: "Ambient sounds", state: sounds, set: setSounds },
       ],
     },

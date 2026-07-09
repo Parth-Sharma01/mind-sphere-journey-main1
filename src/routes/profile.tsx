@@ -3,7 +3,6 @@ import { achievements, wellnessMetrics } from "@/lib/mock-data";
 import { motion } from "framer-motion";
 import { useState } from "react";
 
-
 export const Route = createFileRoute("/profile")({
   component: Profile,
   head: () => ({ meta: [{ title: "Profile · MindSphere AI" }] }),

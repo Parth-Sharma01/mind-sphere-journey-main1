@@ -1,399 +1,243 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { AnimatePresence, motion } from "framer-motion";
-import { useMemo, useState } from "react";
-import { assessmentQuestions, radarData } from "@/lib/mock-data";
-import { ArrowRight, RotateCcw, Sparkles, Trophy } from "lucide-react";
-import {
-  Radar,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  ResponsiveContainer,
-} from "recharts";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowRight, LoaderCircle } from "lucide-react";
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from "recharts";
 
-export const Route = createFileRoute("/assessment")({
-  component: Assessment,
-  head: () => ({ meta: [{ title: "Assessment · MindSphere AI" }] }),
-});
+// --- 1. Define Wellness Dimensions & Questions ---
 
-function Assessment() {
-  const [i, setI] = useState(0);
-  const [answers, setAnswers] = useState<number[]>([]);
-  const total = assessmentQuestions.length;
-  const progress = (answers.length / total) * 100;
-  const done = answers.length >= total;
+const wellnessDimensions = {
+  emotionalRegulation: "Emotional Regulation",
+  socialConnection: "Social Connection",
+  stressManagement: "Stress Management",
+  selfEsteem: "Self-Esteem",
+  mindfulness: "Mindfulness",
+  purpose: "Purpose & Meaning",
+  physicalWellbeing: "Physical Well-being",
+  cognitiveFocus: "Cognitive Focus",
+};
 
-  const xp = answers.length * 10;
-  const level = Math.floor(xp / 100) + 1;
+type DimensionKey = keyof typeof wellnessDimensions;
 
-  const q = assessmentQuestions[i];
+const assessmentQuestions = [
+  {
+    question: "When facing a setback, how often do you feel you can manage your emotions?",
+    dimension: "emotionalRegulation" as DimensionKey,
+  },
+  {
+    question: "How connected and supported do you feel by the people in your life?",
+    dimension: "socialConnection" as DimensionKey,
+  },
+  {
+    question: "How effectively can you relax and de-stress after a challenging day?",
+    dimension: "stressManagement" as DimensionKey,
+  },
+  {
+    question: "How often do you feel confident in your own abilities and worth?",
+    dimension: "selfEsteem" as DimensionKey,
+  },
+  {
+    question: "How often do you find yourself present and engaged in the current moment?",
+    dimension: "mindfulness" as DimensionKey,
+  },
+  {
+    question: "How clear is your sense of direction or purpose in your daily life?",
+    dimension: "purpose" as DimensionKey,
+  },
+  {
+    question: "How satisfied are you with your current sleep quality and energy levels?",
+    dimension: "physicalWellbeing" as DimensionKey,
+  },
+  {
+    question: "How easily can you concentrate on a single task without getting distracted?",
+    dimension: "cognitiveFocus" as DimensionKey,
+  },
+];
 
-  const choose = (idx: number) => {
-    setAnswers((prev) => [...prev, idx]);
-    setTimeout(() => setI((v) => Math.min(v + 1, total - 1)), 250);
+const answerOptions = [
+  { text: "Rarely", value: 1 },
+  { text: "Sometimes", value: 2 },
+  { text: "Often", value: 3 },
+  { text: "Usually", value: 4 },
+  { text: "Almost Always", value: 5 },
+];
+
+// --- 2. Scoring Algorithm & Analysis ---
+
+interface AnalysisResult {
+  overallScore: number;
+  dimensionalScores: { dimension: string; score: number }[];
+  detailedAnalysis: { dimension: string; insight: string }[];
+  chartData: { dimension: string; score: number }[];
+}
+
+function getInsightForScore(dimension: string, score: number): string {
+  const lowScoreInsights: Record<DimensionKey, string> = {
+    emotionalRegulation: "You may find emotions overwhelming at times. Exploring techniques to observe and name your feelings could be a gentle first step.",
+    socialConnection: "It seems like you might be feeling a bit isolated. Small acts of connection, even a brief chat, can start to rebuild that sense of belonging.",
+    stressManagement: "Stress appears to be taking a significant toll. Integrating short, 5-minute relaxation exercises into your day could offer moments of relief.",
+    selfEsteem: "Your confidence might be fluctuating. It can be helpful to acknowledge one small achievement each day, no matter how minor it seems.",
+    mindfulness: "It sounds like your mind is often busy with the past or future. Practicing simple grounding techniques, like focusing on your breath, can help anchor you in the present.",
+    purpose: "You may be searching for a clearer sense of direction. Reflecting on activities that genuinely spark your interest could reveal clues about your path.",
+    physicalWellbeing: "Your body's core needs, like sleep and energy, might not be fully met. Prioritizing a consistent sleep schedule could be highly beneficial.",
+    cognitiveFocus: "Concentration seems to be a challenge right now. The 'Pomodoro Technique' (25 mins on, 5 mins off) can be a great way to train your focus muscle.",
   };
 
-  const reset = () => {
-    setAnswers([]);
-    setI(0);
+  const midScoreInsights: Record<DimensionKey, string> = {
+    emotionalRegulation: "You have a foundational ability to manage emotions, though some situations are tougher than others. Identifying specific triggers could be the next step.",
+    socialConnection: "You have some supportive connections, but there's room for more depth. Consider investing a little more time in the relationships that energize you.",
+    stressManagement: "You have some coping strategies for stress, but they may not always be enough. Expanding your toolkit of relaxation techniques could provide more resilience.",
+    selfEsteem: "Your self-worth is present but can be shaken. Building a habit of positive self-talk can help strengthen your inner foundation.",
+    mindfulness: "You experience moments of presence, but also periods of distraction. A brief daily mindfulness practice could help make that presence more consistent.",
+    purpose: "You have a general sense of what's important to you, but it could be clearer. Journaling about your values might bring more clarity.",
+    physicalWellbeing: "You're taking some steps to care for your physical health. Fine-tuning your routine, perhaps with nutrition or exercise, could boost your vitality.",
+    cognitiveFocus: "You can focus when needed, but it requires effort. Minimizing digital distractions during work periods can help conserve your mental energy.",
   };
 
-  const summary = useMemo(() => {
-    // random-ish but stable-looking summary
-    const s = answers.reduce((a, b) => a + b, 0);
-    const seed = (n: number) => 45 + ((s * 7 + n * 13) % 55);
-    return radarData.map((d, k) => ({ ...d, A: seed(k) }));
-  }, [answers]);
-
-  const rangeFor = (value: number) => {
-    // value is 0-100
-    if (value < 35) return { label: "Cautious", color: "border-rose-500/30 bg-rose-500/5" };
-    if (value < 55) return { label: "Getting steadier", color: "border-yellow-500/30 bg-yellow-500/5" };
-    if (value < 75) return { label: "Good progress", color: "border-emerald-500/30 bg-emerald-500/5" };
-    if (value < 90) return { label: "Strong", color: "border-cyan-500/30 bg-cyan-500/5" };
-    return { label: "Excellent", color: "border-fuchsia-500/30 bg-fuchsia-500/5" };
+  const highScoreInsights: Record<DimensionKey, string> = {
+    emotionalRegulation: "You show strong emotional resilience and awareness. Continue to trust your ability to navigate your feelings with grace.",
+    socialConnection: "You've cultivated a strong and supportive social network. Nurturing these bonds continues to be a source of strength.",
+    stressManagement: "You have effective and healthy strategies for managing stress. Sharing these techniques with others could even reinforce your own practice.",
+    selfEsteem: "You have a solid sense of self-worth and confidence. This is a powerful asset for navigating life's challenges.",
+    mindfulness: "You demonstrate a strong ability to remain present and engaged. Your awareness is a skill that enhances all areas of your life.",
+    purpose: "You are guided by a clear sense of purpose and meaning. This provides you with motivation and direction.",
+    physicalWellbeing: "You are highly in-tune with your body's needs and actively support your physical health. This is the foundation of your overall wellness.",
+    cognitiveFocus: "You possess a strong ability to direct your attention and concentrate. This allows you to engage deeply and effectively with your tasks.",
   };
 
-  const guidanceContent: Record<string, {
-    meaning: (v: number) => string;
-    today: (v: number) => string[];
-    caution?: (v: number) => string | undefined;
-  }> = {
-    Mood: {
-      meaning: (v) =>
-        v < 35
-          ? "Your mood is likely heavier right now. That doesn’t mean you’re stuck — it means you need support."
-          : v < 55
-            ? "Your mood is mixed. Some moments are okay, others feel harder."
-            : v < 75
-              ? "Your mood is leaning positive. You’re more resilient than you think."
-              : "Your mood is strong. Ride it gently, and keep things balanced.",
-      today: (v) => v < 55 ? ["Do a 2-minute reset (slow breathing)", "Pick one small kind action (text a friend / drink water)", "Write: 'What helped even 1%?'" ] : ["Keep one habit consistent", "Add a short joy moment (music / sunshine)", "Avoid overloading today — protect your energy"],
-      caution: (v) =>
-        v < 35
-          ? "If you feel unsafe or overwhelmed, reach out immediately to someone you trust or a local professional for urgent support."
-          : undefined,
-    },
-    Stress: {
-      meaning: (v) =>
-        v < 35
-          ? "Stress looks low — nice. That usually means your mind can recover easily."
-          : v < 55
-            ? "Stress seems moderate. You might feel 'on' more than usual."
-            : v < 75
-              ? "Stress is present but manageable."
-              : "Stress looks high right now. Your body may be asking for a pause.",
-      today: (v) =>
-        v < 55
-          ? ["Try a 5-minute breathing reset", "Stand up + stretch 60 seconds", "Plan one low-pressure block"]
-          : ["Do a 3-minute 'downshift' (inhale 4, exhale 6)", "Reduce screen/notifications for 30 minutes", "Ask for one small help (even a quick check-in)"] ,
-      caution: (v) =>
-        v >= 75
-          ? "Need immediate help? If your stress feels unbearable or you feel unsafe, contact local emergency services or a trusted person/professional right now."
-          : undefined,
-    },
-    Focus: {
-      meaning: (v) =>
-        v < 35
-          ? "Focus is likely scattered. It’s okay — we’ll work with your current bandwidth."
-          : v < 55
-            ? "Your attention is working, but it may break often."
-            : v < 75
-              ? "Good focus baseline. With the right structure, you can do a lot."
-              : "Strong focus. You can enter a productive flow faster than usual.",
-      today: (v) =>
-        v < 55
-          ? ["Use a 10–15 minute timer (one task only)", "Clear your desk/phone distractions", "Take a 2-minute break after timer ends"]
-          : ["Do one deep work block (25–35 min)", "Turn on 'Do Not Disturb'", "Start with the easiest step first"],
-    },
-    Sleep: {
-      meaning: (v) =>
-        v < 35
-          ? "Sleep quality looks low. This can make stress and focus harder tomorrow."
-          : v < 55
-            ? "Sleep is okay, but not fully restorative."
-            : v < 75
-              ? "Sleep quality is decent."
-              : "Sleep quality is strong. Great recovery window.",
-      today: (v) =>
-        v < 75
-          ? ["Dim lights 60 minutes before bed", "Avoid screens last 20 minutes", "If you can’t sleep: try calm breathing for 5 minutes"]
-          : ["Keep a consistent bedtime tonight", "Short wind-down (5–10 min)", "Hydrate earlier, not right before bed"],
-    },
-    Energy: {
-      meaning: (v) =>
-        v < 35
-          ? "Energy is low today. That’s a signal to pace, not push."
-          : v < 55
-            ? "Your energy is inconsistent."
-            : v < 75
-              ? "Energy is moderate — you can get things done with breaks."
-              : "Energy is strong. Use it wisely.",
-      today: (v) =>
-        v < 55
-          ? ["Pick one 'must-do' only", "Short walk (5–10 minutes)", "Eat something simple + water"]
-          : ["Do the hardest thing first", "Schedule a break before you 'feel tired'", "Keep evenings lighter"],
-    },
-    Motivation: {
-      meaning: (v) =>
-        v < 35
-          ? "Motivation is low — this is normal when life feels heavy."
-          : v < 55
-            ? "Motivation is there, but small and fragile."
-            : v < 75
-              ? "Motivation is steady."
-              : "High motivation. Great time to build momentum.",
-      today: (v) =>
-        v < 55
-          ? ["Set a tiny goal (2-minute start)", "Reward yourself immediately after starting", "Choose 'good enough' over perfect"]
-          : ["Plan 3 steps max", "Batch similar tasks", "Start early to reduce mental load"],
-    },
-    Confidence: {
-      meaning: (v) =>
-        v < 35
-          ? "Confidence feels shaky. You may doubt yourself more than you need to."
-          : v < 55
-            ? "Confidence is mixed."
-            : v < 75
-              ? "Confidence is okay."
-              : "Confidence is strong.",
-      today: (v) =>
-        v < 55
-          ? ["Talk to yourself like a friend (1 kind sentence)", "Write: 'I’ve handled harder weeks'", "Do one small action to prove progress"]
-          : ["Commit to a simple next step", "Keep expectations realistic", "Celebrate effort, not just outcomes"],
-    },
-    Relationships: {
-      meaning: (v) =>
-        v < 35
-          ? "You might feel disconnected right now."
-          : v < 55
-            ? "Some connections feel okay, others feel distant."
-            : v < 75
-              ? "Relationships look supportive overall."
-              : "You likely feel connected and understood.",
-      today: (v) =>
-        v < 75
-          ? ["Message one person (short + honest)", "Try a 10-minute chat or call", "Join a small community moment (if possible)"]
-          : ["Share one win with someone", "Make plans for next week", "Offer support back — connection grows both ways"],
-    },
-  };
+  if (score <= 2) return lowScoreInsights[dimension as DimensionKey];
+  if (score <= 3.5) return midScoreInsights[dimension as DimensionKey];
+  return highScoreInsights[dimension as DimensionKey];
+}
 
-  const guidanceFor = (subject: string, value: number) => {
-    const content = guidanceContent[subject];
-    if (!content) {
-      return {
-        meaning: "You’re building consistency. Keep your routine simple and repeatable.",
-        today: ["Keep it simple today."],
-        caution: undefined,
-      };
+function analyzeResponses(responses: { [key: number]: number }): AnalysisResult {
+  const dimensionalScores: { [key in DimensionKey]: { total: number; count: number } } = Object.keys(wellnessDimensions).reduce((acc, key) => ({ ...acc, [key]: { total: 0, count: 0 } }), {} as any);
+
+  assessmentQuestions.forEach((q, index) => {
+    const score = responses[index] || 0;
+    dimensionalScores[q.dimension].total += score;
+    dimensionalScores[q.dimension].count += 1;
+  });
+
+  const averagedScores = Object.entries(dimensionalScores).map(([key, { total, count }]) => ({
+    dimension: wellnessDimensions[key as DimensionKey],
+    score: count > 0 ? total / count : 0,
+  }));
+
+  const overallScore = Math.round((averagedScores.reduce((sum, item) => sum + item.score, 0) / (averagedScores.length * 5)) * 100);
+
+  const detailedAnalysis = averagedScores.map(({ dimension, score }) => ({
+    dimension,
+    insight: getInsightForScore(Object.keys(wellnessDimensions).find(key => wellnessDimensions[key as DimensionKey] === dimension)!, score),
+  }));
+
+  const chartData = averagedScores.map(item => ({ dimension: item.dimension.split(' ')[0], score: item.score }));
+
+  return { overallScore, dimensionalScores: averagedScores, detailedAnalysis, chartData };
+}
+
+// --- 3. React Component for Assessment & Results ---
+
+function AssessmentComponent() {
+  const navigate = useNavigate({ from: "/assessment" });
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [responses, setResponses] = useState<{ [key: number]: number }>({});
+  const [results, setResults] = useState<AnalysisResult | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  const handleAnswer = (value: number) => {
+    const newResponses = { ...responses, [currentQuestion]: value };
+    setResponses(newResponses);
+
+    if (currentQuestion < assessmentQuestions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+    } else {
+      setIsAnalyzing(true);
+      setTimeout(() => {
+        const analysisResults = analyzeResponses(newResponses);
+        setResults(analysisResults);
+        setIsAnalyzing(false);
+      }, 2000); // Simulate analysis time
     }
-    return {
-      meaning: content.meaning(value),
-      today: content.today(value),
-      caution: content.caution ? content.caution(value) : undefined,
-    };
   };
 
-  const overallScore = Math.round(
-    summary.reduce((sum, m) => sum + m.A, 0) / Math.max(1, summary.length),
-  );
-  const overallRange = rangeFor(overallScore);
-
-  const downloadReport = () => {
-    const lines: string[] = [];
-    lines.push("MindSphere AI — Wellness Report");
-    lines.push(`Generated: ${new Date().toLocaleString()}`);
-    lines.push("");
-    lines.push(`Overall: ${overallScore}/100 (${overallRange.label})`);
-    lines.push(`XP: +${xp} | Level: ${level}`);
-    lines.push("");
-    for (const m of summary) {
-      const g = guidanceFor(m.subject, m.A);
-      lines.push(`${m.subject}: ${m.A}/100 (${rangeFor(m.A).label})`);
-      lines.push(`Meaning: ${g.meaning}`); // This line will now use the refactored function
-      lines.push("Do today:");
-      for (const t of g.today) lines.push(`- ${t}`);
-      if (g.caution) lines.push(`Safety note: ${g.caution}`);
-      lines.push("");
-    }
-    lines.push("Important: This report is educational and not a medical or mental health diagnosis.");
-
-    const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `MindSphere_Wellness_Report_${new Date().toISOString().slice(0, 10)}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  };
-
-  if (done) {
+  if (isAnalyzing) {
     return (
-      <div className="max-w-4xl mx-auto space-y-8">
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="glass-strong rounded-3xl p-8 text-center"
-        >
-          <Trophy className="mx-auto h-10 w-10 text-amber-300" />
-          <h1 className="mt-4 text-3xl font-semibold">Your Wellness Report</h1>
-          <p className="mt-2 text-muted-foreground">
-            A friendly, educational snapshot of how you're doing right now. Not a diagnosis — a mirror.
-          </p>
-          <div className="mt-4 inline-flex gap-3 flex-wrap justify-center">
-            <span className="glass rounded-full px-3 py-1 text-xs">+{xp} XP</span>
-            <span className="glass rounded-full px-3 py-1 text-xs">Level {level}</span>
-            <span className="glass rounded-full px-3 py-1 text-xs">Achievement: Self-Aware 🌱</span>
-          </div>
-        </motion.div>
-
-        <div className="grid md:grid-cols-2 gap-4">
-          <div className="glass rounded-3xl p-6 h-[360px]">
-            <div className="flex items-center justify-between gap-3 text-sm text-muted-foreground mb-2">
-              <span>Mind Snapshot</span>
-              <span className={`border px-3 py-1 rounded-full text-xs ${overallRange.color}`}
-              >
-                Overall: {overallScore}/100
-              </span>
-            </div>
-            <ResponsiveContainer width="100%" height="90%">
-              <RadarChart data={summary}>
-                <PolarGrid stroke="oklch(1 0 0 / 0.15)" />
-                <PolarAngleAxis dataKey="subject" tick={{ fill: "oklch(0.85 0 0)", fontSize: 12 }} />
-                <PolarRadiusAxis stroke="oklch(1 0 0 / 0.1)" tick={false} />
-                <Radar dataKey="A" stroke="#d946ef" fill="#d946ef" fillOpacity={0.35} />
-              </RadarChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            {summary.slice(0, 6).map((m) => {
-              const r = rangeFor(m.A);
-              return (
-                <div key={m.subject} className={`glass rounded-2xl p-4 border ${r.color.replace("border-", "border-")}`.trim()}>
-                  <div className="text-[11px] text-muted-foreground">{m.subject}</div>
-                  <div className="mt-1 text-2xl font-semibold">{m.A}</div>
-                  <div className="mt-2 text-[11px] opacity-80">{r.label}</div>
-                  <div className="mt-2 h-1.5 rounded-full bg-white/10 overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${m.A}%` }}
-                      transition={{ duration: 1 }}
-                      className="h-full bg-gradient-to-r from-fuchsia-500 to-cyan-400"
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="glass rounded-3xl p-6">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Sparkles className="h-4 w-4" /> What this means (plain language)
-          </div>
-          <p className="mt-3 text-lg">
-            Your overall range is <span className="font-semibold">{overallRange.label}</span>. This likely means your habits are
-            {overallScore < 55 ? " building stability" : " ready for momentum"}, with small daily support steps helping most.
-          </p>
-          <div className="mt-4 text-sm text-muted-foreground">
-            Educational note: if you feel unsafe or in urgent danger, contact local emergency services or a trusted professional immediately.
-          </div>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-4">
-          {summary.map((m) => {
-            const g = guidanceFor(m.subject, m.A);
-            const r = rangeFor(m.A);
-            return (
-              <div key={m.subject} className={`glass rounded-3xl p-6 border ${r.color}`}>
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="text-sm text-muted-foreground">{m.subject}</div>
-                    <div className="mt-1 text-2xl font-semibold">
-                      {m.A} <span className="text-sm font-normal">/ 100</span>
-                    </div>
-                    <div className="mt-1 text-xs">Range: {r.label}</div>
-                  </div>
-                </div>
-                <div className="mt-4 text-sm leading-relaxed">{g.meaning}</div>
-                <div className="mt-4">
-                  <div className="text-xs text-muted-foreground">What to do today</div>
-                  <ul className="mt-2 space-y-2 text-sm list-disc pl-5">
-                    {g.today.map((t, idx) => (
-                      <li key={idx}>{t}</li>
-                    ))}
-                  </ul>
-                </div>
-                {g.caution && (
-                  <div className="mt-4 rounded-2xl bg-white/5 border border-rose-500/30 p-3 text-xs text-rose-200">
-                    <span className="font-semibold">Safety / support:</span> {g.caution}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-          <button
-            onClick={downloadReport}
-            className="flex items-center justify-center gap-2 glass rounded-full px-5 py-2 text-sm"
-          >
-            <span aria-hidden>⬇️</span> Download report
-          </button>
-          <button
-            onClick={reset}
-            className="mx-auto flex items-center justify-center gap-2 glass rounded-full px-5 py-2 text-sm"
-          >
-            <RotateCcw className="h-4 w-4" /> Retake assessment
-          </button>
-        </div>
+      <div className="text-center">
+        <LoaderCircle className="mx-auto h-12 w-12 animate-spin text-fuchsia-400" />
+        <h2 className="mt-4 text-2xl font-semibold">Analyzing your responses...</h2>
+        <p className="text-muted-foreground">Unlocking your Mind-Sphere profile.</p>
       </div>
     );
   }
 
+  if (results) {
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-10">
+        <div className="text-center">
+          <h1 className="text-2xl font-semibold">Your Mind Score</h1>
+          <p className="text-7xl font-bold text-gradient mt-2">{results.overallScore}</p>
+          <p className="text-muted-foreground mt-2">A holistic snapshot of your current mental wellness.</p>
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-8 items-center">
+          <div className="glass rounded-xl p-4 h-96">
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart cx="50%" cy="50%" outerRadius="80%" data={results.chartData}>
+                <PolarGrid stroke="rgba(255, 255, 255, 0.2)" />
+                <PolarAngleAxis dataKey="dimension" tick={{ fill: 'white', fontSize: 12 }} />
+                <PolarRadiusAxis angle={30} domain={[0, 5]} tick={false} axisLine={false} />
+                <Radar name="Score" dataKey="score" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="space-y-4">
+            <h3 className="font-semibold text-xl">Detailed Analysis</h3>
+            {results.detailedAnalysis.map(item => (
+              <div key={item.dimension}>
+                <h4 className="font-medium">{item.dimension}</h4>
+                <p className="text-sm text-muted-foreground">{item.insight}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="text-center">
+            <button onClick={() => navigate({ to: '/dashboard' })} className="group inline-flex items-center gap-2 rounded-full bg-white text-black px-6 py-3 text-sm font-medium hover:opacity-90 transition">
+                Continue to Dashboard <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition" />
+            </button>
+        </div>
+      </motion.div>
+    );
+  }
+
+  const progress = (currentQuestion / assessmentQuestions.length) * 100;
+
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span>
-          Question {answers.length + 1} of {total}
-        </span>
-        <span>
-          +{xp} XP · Lvl {level}
-        </span>
+      <div className="w-full bg-gray-700 rounded-full h-2 mb-8">
+        <motion.div className="bg-gradient-to-r from-fuchsia-500 to-cyan-400 h-2 rounded-full" style={{ width: `${progress}%` }} />
       </div>
-      <div className="mt-3 h-2 rounded-full bg-white/5 overflow-hidden">
-        <motion.div
-          className="h-full bg-gradient-to-r from-fuchsia-500 via-violet-500 to-cyan-400"
-          animate={{ width: `${progress}%` }}
-          transition={{ duration: 0.4 }}
-        />
-      </div>
-
       <AnimatePresence mode="wait">
         <motion.div
-          key={i}
-          initial={{ opacity: 0, x: 40 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -40 }}
+          key={currentQuestion}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.3 }}
-          className="glass-strong rounded-3xl p-8 mt-8"
         >
-          <h2 className="text-2xl sm:text-3xl font-semibold leading-tight">{q.q}</h2>
-          <div className="mt-6 grid gap-3">
-            {q.options.map((o, k) => (
+          <h2 className="text-center text-2xl sm:text-3xl font-semibold leading-tight">
+            {assessmentQuestions[currentQuestion].question}
+          </h2>
+          <div className="mt-10 grid grid-cols-1 sm:grid-cols-5 gap-3">
+            {answerOptions.map(opt => (
               <motion.button
-                key={k}
-                whileHover={{ scale: 1.01, x: 4 }}
-                whileTap={{ scale: 0.99 }}
-                onClick={() => choose(k)}
-                className="glass rounded-2xl px-5 py-4 text-left hover:bg-white/10 transition flex items-center justify-between"
+                key={opt.value}
+                onClick={() => handleAnswer(opt.value)}
+                whileHover={{ y: -4 }}
+                whileTap={{ scale: 0.95 }}
+                className="glass p-4 rounded-xl text-center transition hover:bg-white/10"
               >
-                <span className="text-base">{o}</span>
-                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                {opt.text}
               </motion.button>
             ))}
           </div>
@@ -402,3 +246,7 @@ function Assessment() {
     </div>
   );
 }
+
+export const Route = createFileRoute("/assessment")({
+  component: AssessmentComponent,
+});

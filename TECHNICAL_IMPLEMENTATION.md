@@ -5,6 +5,7 @@
 MindSphere is a **pure front-end React application** using TanStack Router and TypeScript.
 
 ### Tech Stack
+
 - **Framework:** React 18 with TypeScript
 - **Routing:** TanStack Router v1
 - **Styling:** Tailwind CSS + Custom CSS
@@ -23,6 +24,7 @@ All data is stored in `localStorage` using JSON serialization.
 ### Storage Keys & Schemas
 
 #### 1. Assessment History
+
 ```javascript
 // Key: mindsphere_assessment_history
 // Type: Array<AssessmentResult>
@@ -32,16 +34,17 @@ All data is stored in `localStorage` using JSON serialization.
       emotional_resilience: 75,
       focus_clarity: 68,
       stress_balance: 82,
-      social_harmony: 71
+      social_harmony: 71,
     },
     date: "2026-07-09T10:30:00.000Z",
-    timestamp: 1720507800000
+    timestamp: 1720507800000,
   },
   // ... more entries
-]
+];
 ```
 
 #### 2. Question History (No Repetition)
+
 ```javascript
 // Key: mindsphere_recent_question_sets
 // Type: Array<Array<QuestionID>>
@@ -53,21 +56,23 @@ All data is stored in `localStorage` using JSON serialization.
 ```
 
 #### 3. Journal Entries
+
 ```javascript
 // Key: mindsphere_journal_entries
 // Type: Array<JournalEntry>
 [
   {
     id: "journal_1720507800000",
-    encrypted: "base64EncodedXORCipher...",  // Encrypted content
+    encrypted: "base64EncodedXORCipher...", // Encrypted content
     date: "2026-07-09T10:30:00.000Z",
-    timestamp: 1720507800000
+    timestamp: 1720507800000,
   },
   // ... more entries
-]
+];
 ```
 
 #### 4. MeLodY OfLife Data
+
 ```javascript
 // Key: mindsphere_melody_of_life
 // Type: MelodyData
@@ -80,6 +85,7 @@ All data is stored in `localStorage` using JSON serialization.
 ```
 
 #### 5. Games Performance
+
 ```javascript
 // Key: mindsphere_games_data
 // Type: Object<GameID, PerformanceArray>
@@ -102,6 +108,7 @@ All data is stored in `localStorage` using JSON serialization.
 ## Encryption Implementation
 
 ### XOR Cipher Rationale
+
 - Lightweight and fast for client-side
 - Sufficient for local privacy (not military-grade)
 - Reversible for easy decryption
@@ -110,24 +117,24 @@ All data is stored in `localStorage` using JSON serialization.
 ### Implementation (`src/lib/storage-utils.ts`)
 
 ```typescript
-const SECRET_KEY = 'mindsphere_journal_2024';
+const SECRET_KEY = "mindsphere_journal_2024";
 
 export function encryptEntry(text: string): string {
-  let encrypted = '';
+  let encrypted = "";
   for (let i = 0; i < text.length; i++) {
     encrypted += String.fromCharCode(
-      text.charCodeAt(i) ^ SECRET_KEY.charCodeAt(i % SECRET_KEY.length)
+      text.charCodeAt(i) ^ SECRET_KEY.charCodeAt(i % SECRET_KEY.length),
     );
   }
-  return btoa(encrypted);  // base64 encode for safe storage
+  return btoa(encrypted); // base64 encode for safe storage
 }
 
 export function decryptEntry(encrypted: string): string {
-  const decoded = atob(encrypted);  // base64 decode
-  let decrypted = '';
+  const decoded = atob(encrypted); // base64 decode
+  let decrypted = "";
   for (let i = 0; i < decoded.length; i++) {
     decrypted += String.fromCharCode(
-      decoded.charCodeAt(i) ^ SECRET_KEY.charCodeAt(i % SECRET_KEY.length)
+      decoded.charCodeAt(i) ^ SECRET_KEY.charCodeAt(i % SECRET_KEY.length),
     );
   }
   return decrypted;
@@ -135,6 +142,7 @@ export function decryptEntry(encrypted: string): string {
 ```
 
 **Note:** For production with sensitive data, consider using:
+
 - `TweetNaCl.js` for stronger crypto
 - Backend encryption key management
 - Industry-standard encryption algorithms
@@ -144,6 +152,7 @@ export function decryptEntry(encrypted: string): string {
 ## Assessment Question Pool Design
 
 ### Pool Structure
+
 - **Total Questions:** 75-100
 - **Distribution:** 4 dimensions with balanced coverage
 - **Each Question Format:**
@@ -162,26 +171,25 @@ export function decryptEntry(encrypted: string): string {
 ```typescript
 export function getUniqueAssessmentQuestions(): AssessmentQuestion[] {
   // 1. Get recent question sets from localStorage
-  const recentSets = JSON.parse(
-    localStorage.getItem('mindsphere_recent_question_sets') || '[]'
-  );
+  const recentSets = JSON.parse(localStorage.getItem("mindsphere_recent_question_sets") || "[]");
 
   // 2. Shuffle entire master pool
   const shuffled = [...assessmentQuestionPool].sort(() => Math.random() - 0.5);
 
   // 3. Select first 30 questions (guaranteed unique from recent attempts)
   const selected = shuffled.slice(0, 30);
-  const selectedIds = selected.map(q => q.id);
+  const selectedIds = selected.map((q) => q.id);
 
   // 4. Update history (keep last 3)
   const updated = [selectedIds, ...recentSets].slice(0, 3);
-  localStorage.setItem('mindsphere_recent_question_sets', JSON.stringify(updated));
+  localStorage.setItem("mindsphere_recent_question_sets", JSON.stringify(updated));
 
   return selected;
 }
 ```
 
 **How It Works:**
+
 1. With 75+ questions and selecting 30, very low chance of repetition
 2. Tracks last 3 attempts to provide additional safety
 3. On 4th attempt, first attempt is "cleared" from recent history
@@ -196,7 +204,7 @@ export function getUniqueAssessmentQuestions(): AssessmentQuestion[] {
 ```typescript
 export function calculateMentalScores(
   questions: AssessmentQuestion[],
-  answers: number[]
+  answers: number[],
 ): Record<string, number> {
   const dimensions: Record<string, { total: number; count: number }> = {
     emotional_resilience: { total: 0, count: 0 },
@@ -225,6 +233,7 @@ export function calculateMentalScores(
 ```
 
 **Scoring Logic:**
+
 - Each option has a 0-100 score
 - Dimension score = average of all question scores in that dimension
 - Final score is rounded to nearest integer
@@ -265,6 +274,7 @@ AppShell
 ```
 
 ### State Management Strategy
+
 - **Component State:** React `useState` for UI state
 - **Persistent State:** localStorage for data persistence
 - **URL State:** TanStack Router for navigation
@@ -277,18 +287,21 @@ AppShell
 ## Game Implementation Details
 
 ### Flower Breathing Game
+
 - **Duration:** 14 seconds per round (4+4+6)
 - **Animation:** Framer Motion `scale` property
 - **Timing:** `animate={{ scale: [0.8, 1.4, 1.4, 0.8] }}`
 - **Performance Tracking:** Completion count
 
 ### Stroop Test Game
+
 - **Duration:** 30 seconds
 - **Scoring:** Points = correct answers
 - **Accuracy:** (correct / total) * 100
 - **Performance:** Score, time, accuracy
 
 ### Focus Maze Game
+
 - **Difficulty:** Sequential 1-10 steps
 - **Interaction:** Click correct next step
 - **Timing:** Measures time to completion
@@ -328,10 +341,10 @@ Example:
 ```typescript
 export function NewGame() {
   const handleComplete = (score: number, time: number) => {
-    saveGamePerformance('new_game', {
+    saveGamePerformance("new_game", {
       score,
       time,
-      accuracy: calculateAccuracy()
+      accuracy: calculateAccuracy(),
     });
   };
   // ... component logic
@@ -362,12 +375,14 @@ Key changes needed:
 ## Performance Considerations
 
 ### Current Optimizations
+
 - Lazy loading with React Router
 - Memoization in components
 - Chart rendering optimized with recharts
 - Animations use hardware acceleration
 
 ### Potential Improvements
+
 - Code splitting for routes
 - Image optimization (if added)
 - Debouncing search inputs
@@ -379,12 +394,14 @@ Key changes needed:
 ## Security Best Practices
 
 ### Current Implementation
+
 ✅ Client-side encryption for journal
 ✅ No external API calls
 ✅ localStorage protection via browser security
 ✅ No authentication needed (single user)
 
 ### Future Enhancements
+
 - Add password protection for sensitive access
 - Implement end-to-end encryption
 - Use HTTPS everywhere
@@ -396,17 +413,18 @@ Key changes needed:
 ## Testing Strategy
 
 ### Unit Tests (Recommended)
+
 ```typescript
 // Test scoring calculation
-describe('calculateMentalScores', () => {
-  it('should calculate average scores per dimension', () => {
+describe("calculateMentalScores", () => {
+  it("should calculate average scores per dimension", () => {
     // Test implementation
   });
 });
 
 // Test encryption
-describe('encryptEntry', () => {
-  it('should be reversible', () => {
+describe("encryptEntry", () => {
+  it("should be reversible", () => {
     const original = "test text";
     const encrypted = encryptEntry(original);
     const decrypted = decryptEntry(encrypted);
@@ -416,16 +434,18 @@ describe('encryptEntry', () => {
 ```
 
 ### Integration Tests (Recommended)
+
 ```typescript
 // Test full assessment flow
-describe('Assessment Flow', () => {
-  it('should save and retrieve assessment results', () => {
+describe("Assessment Flow", () => {
+  it("should save and retrieve assessment results", () => {
     // Test flow
   });
 });
 ```
 
 ### E2E Tests (Consider)
+
 - Use Playwright or Cypress
 - Test full user journeys
 - Validate localStorage persistence
@@ -436,12 +456,14 @@ describe('Assessment Flow', () => {
 ## Browser Support
 
 **Tested & Supported:**
+
 - Chrome 90+
 - Firefox 88+
 - Safari 14+
 - Edge 90+
 
 **Requirements:**
+
 - ES2020+ support
 - localStorage support
 - CSS Grid & Flexbox
@@ -452,15 +474,18 @@ describe('Assessment Flow', () => {
 ## Deployment Notes
 
 ### Environment Variables
+
 None required (fully static)
 
 ### Build Process
+
 ```bash
 npm run build  # Creates optimized bundle
 npm run preview  # Preview production build locally
 ```
 
 ### Hosting Options
+
 - Netlify (current: tubular-piroshki-09eb97.netlify.app)
 - Vercel
 - GitHub Pages
@@ -468,6 +493,7 @@ npm run preview  # Preview production build locally
 - Any static hosting
 
 ### Considerations
+
 - No backend needed
 - No database needed
 - No API keys needed
@@ -488,12 +514,14 @@ npm run preview  # Preview production build locally
 ## Future Roadmap
 
 **Phase 2:** Backend & Cloud Sync
+
 - User authentication
 - Cloud data backup
 - Cross-device sync
 - Professional encryption
 
 **Phase 3:** Advanced Features
+
 - AI-powered insights
 - Peer community features
 - Professional counselor referrals
@@ -501,6 +529,7 @@ npm run preview  # Preview production build locally
 - Export to PDF
 
 **Phase 4:** Integration
+
 - Wearable device integration
 - Calendar integration
 - Email notifications
@@ -511,14 +540,17 @@ npm run preview  # Preview production build locally
 ## Troubleshooting
 
 ### Data Lost After Browser Clear
+
 **Expected behavior.** Data is stored in localStorage. Clearing cache/cookies clears data.
 **Solution:** Consider local backups (future export feature)
 
 ### Assessment Shows Same Questions
+
 **If happening:** Submit bug report with question IDs
 **Expected:** 30 unique questions from 75+ pool each attempt
 
 ### Game Performance Not Saving
+
 **Check:** Browser console for errors
 **Solution:** Ensure localStorage is enabled
 **Fallback:** Game still plays, just doesn't track performance

@@ -1,29 +1,31 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Lock, Plus, Trash2, Calendar, Search } from 'lucide-react';
-import {
-  saveJournalEntry,
-  getAllJournalEntries,
-  deleteJournalEntry,
-} from '@/lib/storage-utils';
+import { createFileRoute } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Lock, Plus, Trash2, Calendar, Search } from "lucide-react";
+import { saveJournalEntry, getAllJournalEntries, deleteJournalEntry } from "@/lib/storage-utils";
 
-export const Route = createFileRoute('/journal')({
+export const Route = createFileRoute("/journal-new")({
   component: Journal,
-  head: () => ({ meta: [{ title: 'Private Journal · MindSphere' }] }),
+  head: () => ({ meta: [{ title: "Private Journal · MindSphere" }] }),
 });
 
-type ViewMode = 'list' | 'create';
+type ViewMode = "list" | "create";
 
 function Journal() {
-  const [viewMode, setViewMode] = useState<ViewMode>('list');
-  const [entries, setEntries] = useState<any[]>([]);
-  const [newEntry, setNewEntry] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedEntry, setSelectedEntry] = useState<any>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
+  type JournalEntry = {
+    id: string;
+    content: string;
+    date: string;
+  };
+
+  const [entries, setEntries] = useState<JournalEntry[]>([]);
+  const [newEntry, setNewEntry] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
 
   // Load entries on mount
   useEffect(() => {
@@ -41,13 +43,13 @@ function Journal() {
     const entryId = `journal_${Date.now()}`;
     saveJournalEntry(entryId, newEntry);
 
-    setNewEntry('');
-    setViewMode('list');
+    setNewEntry("");
+    setViewMode("list");
     loadEntries();
   };
 
   const handleDeleteEntry = (entryId: string) => {
-    if (confirm('Are you sure you want to delete this entry? This action cannot be undone.')) {
+    if (confirm("Are you sure you want to delete this entry? This action cannot be undone.")) {
       deleteJournalEntry(entryId);
       loadEntries();
       setSelectedEntry(null);
@@ -57,18 +59,18 @@ function Journal() {
   const filteredEntries = entries.filter(
     (entry) =>
       entry.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      entry.date.includes(searchQuery)
+      entry.date.includes(searchQuery),
   );
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return date.toLocaleDateString("en-US", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -86,12 +88,13 @@ function Journal() {
             <h1 className="text-4xl font-bold text-gray-800">Private Journal</h1>
           </div>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            A sacred space for your thoughts. Your entries are encrypted and stored locally on your device.
+            A sacred space for your thoughts. Your entries are encrypted and stored locally on your
+            device.
           </p>
         </motion.div>
 
         <AnimatePresence mode="wait">
-          {viewMode === 'create' ? (
+          {viewMode === "create" ? (
             // Create Entry View
             <motion.div
               key="create"
@@ -120,16 +123,16 @@ function Journal() {
 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                   <p className="text-sm text-blue-800">
-                    <strong>Privacy Note:</strong> Your entry will be encrypted using a secure client-side cipher
-                    before being stored. Only you can decrypt and read it.
+                    <strong>Privacy Note:</strong> Your entry will be encrypted using a secure
+                    client-side cipher before being stored. Only you can decrypt and read it.
                   </p>
                 </div>
 
                 <div className="flex gap-4">
                   <Button
                     onClick={() => {
-                      setNewEntry('');
-                      setViewMode('list');
+                      setNewEntry("");
+                      setViewMode("list");
                     }}
                     variant="outline"
                   >
@@ -168,7 +171,7 @@ function Journal() {
                   />
                 </div>
                 <Button
-                  onClick={() => setViewMode('create')}
+                  onClick={() => setViewMode("create")}
                   className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white gap-2 whitespace-nowrap"
                 >
                   <Plus className="w-5 h-5" />
@@ -180,11 +183,13 @@ function Journal() {
               {filteredEntries.length === 0 ? (
                 <Card className="p-12 text-center border-2 border-dashed border-gray-300">
                   <p className="text-gray-500 text-lg mb-4">
-                    {entries.length === 0 ? 'No entries yet. Start writing!' : 'No entries match your search.'}
+                    {entries.length === 0
+                      ? "No entries yet. Start writing!"
+                      : "No entries match your search."}
                   </p>
                   {entries.length === 0 && (
                     <Button
-                      onClick={() => setViewMode('create')}
+                      onClick={() => setViewMode("create")}
                       className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white gap-2"
                     >
                       <Plus className="w-5 h-5" />
@@ -202,7 +207,9 @@ function Journal() {
                       transition={{ delay: index * 0.05 }}
                     >
                       <Card
-                        onClick={() => setSelectedEntry(selectedEntry?.id === entry.id ? null : entry)}
+                        onClick={() =>
+                          setSelectedEntry(selectedEntry?.id === entry.id ? null : entry)
+                        }
                         className="p-6 border-2 border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all cursor-pointer"
                       >
                         <div className="flex items-start justify-between gap-4">
@@ -221,11 +228,13 @@ function Journal() {
                         {selectedEntry?.id === entry.id && (
                           <motion.div
                             initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
+                            animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
                             className="mt-4 pt-4 border-t border-gray-200"
                           >
-                            <p className="text-gray-700 whitespace-pre-wrap mb-4">{entry.content}</p>
+                            <p className="text-gray-700 whitespace-pre-wrap mb-4">
+                              {entry.content}
+                            </p>
                             <Button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -252,12 +261,15 @@ function Journal() {
                   <li className="flex gap-2">
                     <span>🔒</span>
                     <span>
-                      All entries are encrypted locally using a client-side XOR cipher before storage
+                      All entries are encrypted locally using a client-side XOR cipher before
+                      storage
                     </span>
                   </li>
                   <li className="flex gap-2">
                     <span>📱</span>
-                    <span>Data is stored only in your browser's local storage—never uploaded anywhere</span>
+                    <span>
+                      Data is stored only in your browser's local storage—never uploaded anywhere
+                    </span>
                   </li>
                   <li className="flex gap-2">
                     <span>🗑️</span>

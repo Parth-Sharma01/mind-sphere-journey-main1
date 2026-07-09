@@ -6,4 +6,3 @@
 - [ ] Add a “Download report” button that exports a JSON or text/html report (no new deps)
 - [ ] Ensure UI remains responsive and TypeScript passes
 - [ ] Run lint/build to verify
-
