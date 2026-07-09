@@ -58,14 +58,16 @@ export function useTheme() {
 
 const nav = [
   { to: "/", label: "Home", icon: Home },
-  { to: "/mind-score", label: "Mind Score", icon: ClipboardCheck },
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/journal", label: "Journal", icon: BookOpen },
-  { to: "/games", label: "Games", icon: Gamepad2 },
-  { to: "/coach", label: "AI Coach", icon: Sparkles },
-  { to: "/community", label: "Community", icon: Users },
-  { to: "/pricing", label: "Pricing", icon: Tag },
-  { to: "/profile", label: "Profile", icon: User },
+  { to: "/assessment", label: "Mind Score", icon: ClipboardCheck },
+  // NOTE: The routes below are placeholders. They have been commented out
+  // to prevent build failures. You can uncomment them as you create the pages.
+  // { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  // { to: "/journal", label: "Journal", icon: BookOpen },
+  // { to: "/games", label: "Games", icon: Gamepad2 },
+  // { to: "/coach", label: "AI Coach", icon: Sparkles },
+  // { to: "/community", label: "Community", icon: Users },
+  // { to: "/pricing", label: "Pricing", icon: Tag },
+  // { to: "/profile", label: "Profile", icon: User },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
@@ -98,7 +100,7 @@ function AppShellContent() {
           </Link>
 
           <div className="hidden lg:flex items-center gap-1">
-            {nav.slice(0, 8).map((item) => {
+            {nav.map((item) => {
               const active = pathname === item.to;
               return (
                 <Link
@@ -114,10 +116,10 @@ function AppShellContent() {
 
           <div className="hidden lg:flex items-center gap-2">
             <Link
-              to="/pricing"
+              to="/assessment"
               className="text-sm text-gray-500 dark:text-muted-foreground hover:text-gray-900 dark:hover:text-white px-3 py-1.5"
             >
-              Pricing
+              Assessment
             </Link>
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -129,7 +131,7 @@ function AppShellContent() {
               </AnimatePresence>
             </button>
             <Link
-              to="/profile"
+              to="/settings"
               className="h-8 w-8 rounded-full bg-gradient-to-br from-cyan-400 to-violet-500 grid place-items-center text-xs font-semibold text-white"
             >
               A
