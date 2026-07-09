@@ -55,145 +55,144 @@ function Assessment() {
     return { label: "Excellent", color: "border-fuchsia-500/30 bg-fuchsia-500/5" };
   };
 
+  const guidanceContent: Record<string, {
+    meaning: (v: number) => string;
+    today: (v: number) => string[];
+    caution?: (v: number) => string | undefined;
+  }> = {
+    Mood: {
+      meaning: (v) =>
+        v < 35
+          ? "Your mood is likely heavier right now. That doesn’t mean you’re stuck — it means you need support."
+          : v < 55
+            ? "Your mood is mixed. Some moments are okay, others feel harder."
+            : v < 75
+              ? "Your mood is leaning positive. You’re more resilient than you think."
+              : "Your mood is strong. Ride it gently, and keep things balanced.",
+      today: (v) => v < 55 ? ["Do a 2-minute reset (slow breathing)", "Pick one small kind action (text a friend / drink water)", "Write: 'What helped even 1%?'" ] : ["Keep one habit consistent", "Add a short joy moment (music / sunshine)", "Avoid overloading today — protect your energy"],
+      caution: (v) =>
+        v < 35
+          ? "If you feel unsafe or overwhelmed, reach out immediately to someone you trust or a local professional for urgent support."
+          : undefined,
+    },
+    Stress: {
+      meaning: (v) =>
+        v < 35
+          ? "Stress looks low — nice. That usually means your mind can recover easily."
+          : v < 55
+            ? "Stress seems moderate. You might feel 'on' more than usual."
+            : v < 75
+              ? "Stress is present but manageable."
+              : "Stress looks high right now. Your body may be asking for a pause.",
+      today: (v) =>
+        v < 55
+          ? ["Try a 5-minute breathing reset", "Stand up + stretch 60 seconds", "Plan one low-pressure block"]
+          : ["Do a 3-minute 'downshift' (inhale 4, exhale 6)", "Reduce screen/notifications for 30 minutes", "Ask for one small help (even a quick check-in)"] ,
+      caution: (v) =>
+        v >= 75
+          ? "Need immediate help? If your stress feels unbearable or you feel unsafe, contact local emergency services or a trusted person/professional right now."
+          : undefined,
+    },
+    Focus: {
+      meaning: (v) =>
+        v < 35
+          ? "Focus is likely scattered. It’s okay — we’ll work with your current bandwidth."
+          : v < 55
+            ? "Your attention is working, but it may break often."
+            : v < 75
+              ? "Good focus baseline. With the right structure, you can do a lot."
+              : "Strong focus. You can enter a productive flow faster than usual.",
+      today: (v) =>
+        v < 55
+          ? ["Use a 10–15 minute timer (one task only)", "Clear your desk/phone distractions", "Take a 2-minute break after timer ends"]
+          : ["Do one deep work block (25–35 min)", "Turn on 'Do Not Disturb'", "Start with the easiest step first"],
+    },
+    Sleep: {
+      meaning: (v) =>
+        v < 35
+          ? "Sleep quality looks low. This can make stress and focus harder tomorrow."
+          : v < 55
+            ? "Sleep is okay, but not fully restorative."
+            : v < 75
+              ? "Sleep quality is decent."
+              : "Sleep quality is strong. Great recovery window.",
+      today: (v) =>
+        v < 75
+          ? ["Dim lights 60 minutes before bed", "Avoid screens last 20 minutes", "If you can’t sleep: try calm breathing for 5 minutes"]
+          : ["Keep a consistent bedtime tonight", "Short wind-down (5–10 min)", "Hydrate earlier, not right before bed"],
+    },
+    Energy: {
+      meaning: (v) =>
+        v < 35
+          ? "Energy is low today. That’s a signal to pace, not push."
+          : v < 55
+            ? "Your energy is inconsistent."
+            : v < 75
+              ? "Energy is moderate — you can get things done with breaks."
+              : "Energy is strong. Use it wisely.",
+      today: (v) =>
+        v < 55
+          ? ["Pick one 'must-do' only", "Short walk (5–10 minutes)", "Eat something simple + water"]
+          : ["Do the hardest thing first", "Schedule a break before you 'feel tired'", "Keep evenings lighter"],
+    },
+    Motivation: {
+      meaning: (v) =>
+        v < 35
+          ? "Motivation is low — this is normal when life feels heavy."
+          : v < 55
+            ? "Motivation is there, but small and fragile."
+            : v < 75
+              ? "Motivation is steady."
+              : "High motivation. Great time to build momentum.",
+      today: (v) =>
+        v < 55
+          ? ["Set a tiny goal (2-minute start)", "Reward yourself immediately after starting", "Choose 'good enough' over perfect"]
+          : ["Plan 3 steps max", "Batch similar tasks", "Start early to reduce mental load"],
+    },
+    Confidence: {
+      meaning: (v) =>
+        v < 35
+          ? "Confidence feels shaky. You may doubt yourself more than you need to."
+          : v < 55
+            ? "Confidence is mixed."
+            : v < 75
+              ? "Confidence is okay."
+              : "Confidence is strong.",
+      today: (v) =>
+        v < 55
+          ? ["Talk to yourself like a friend (1 kind sentence)", "Write: 'I’ve handled harder weeks'", "Do one small action to prove progress"]
+          : ["Commit to a simple next step", "Keep expectations realistic", "Celebrate effort, not just outcomes"],
+    },
+    Relationships: {
+      meaning: (v) =>
+        v < 35
+          ? "You might feel disconnected right now."
+          : v < 55
+            ? "Some connections feel okay, others feel distant."
+            : v < 75
+              ? "Relationships look supportive overall."
+              : "You likely feel connected and understood.",
+      today: (v) =>
+        v < 75
+          ? ["Message one person (short + honest)", "Try a 10-minute chat or call", "Join a small community moment (if possible)"]
+          : ["Share one win with someone", "Make plans for next week", "Offer support back — connection grows both ways"],
+    },
+  };
+
   const guidanceFor = (subject: string, value: number) => {
-    const r = rangeFor(value);
-
-    const common = {
-      cautious:
-        "This is a sign to take things gently today. Small support steps can help quickly.",
-      steady:
-        "You’re building consistency. Keep your routine simple and repeatable.",
-      good:
-        "You’re doing well. Focus on maintaining what’s working.",
-      strong:
-        "You have strong momentum. Protect it with a small recovery habit.",
-      excellent:
-        "You’re in a great window. Use it to lock in habits for next week too.",
+    const content = guidanceContent[subject];
+    if (!content) {
+      return {
+        meaning: "You’re building consistency. Keep your routine simple and repeatable.",
+        today: ["Keep it simple today."],
+        caution: undefined,
+      };
+    }
+    return {
+      meaning: content.meaning(value),
+      today: content.today(value),
+      caution: content.caution ? content.caution(value) : undefined,
     };
-
-    const bySubject: Record<string, (v: number) => { meaning: string; today: string[]; caution?: string }> = {
-      Mood: (v) => ({
-        meaning:
-          v < 35
-            ? "Your mood is likely heavier right now. That doesn’t mean you’re stuck — it means you need support."
-            : v < 55
-              ? "Your mood is mixed. Some moments are okay, others feel harder."
-              : v < 75
-                ? "Your mood is leaning positive. You’re more resilient than you think."
-                : "Your mood is strong. Ride it gently, and keep things balanced.",
-        today: v < 55 ? ["Do a 2-minute reset (slow breathing)", "Pick one small kind action (text a friend / drink water)", "Write: 'What helped even 1%?'" ] : ["Keep one habit consistent", "Add a short joy moment (music / sunshine)", "Avoid overloading today — protect your energy"],
-        caution:
-          v < 35
-            ? "If you feel unsafe or overwhelmed, reach out immediately to someone you trust or a local professional for urgent support."
-            : undefined,
-      }),
-      Stress: (v) => ({
-        meaning:
-          v < 35
-            ? "Stress looks low — nice. That usually means your mind can recover easily."
-            : v < 55
-              ? "Stress seems moderate. You might feel 'on' more than usual."
-              : v < 75
-                ? "Stress is present but manageable."
-                : "Stress looks high right now. Your body may be asking for a pause.",
-        today:
-          v < 55
-            ? ["Try a 5-minute breathing reset", "Stand up + stretch 60 seconds", "Plan one low-pressure block"]
-            : ["Do a 3-minute 'downshift' (inhale 4, exhale 6)", "Reduce screen/notifications for 30 minutes", "Ask for one small help (even a quick check-in)"] ,
-        caution:
-          v >= 75
-            ? "Need immediate help? If your stress feels unbearable or you feel unsafe, contact local emergency services or a trusted person/professional right now."
-            : undefined,
-      }),
-      Focus: (v) => ({
-        meaning:
-          v < 35
-            ? "Focus is likely scattered. It’s okay — we’ll work with your current bandwidth."
-            : v < 55
-              ? "Your attention is working, but it may break often."
-              : v < 75
-                ? "Good focus baseline. With the right structure, you can do a lot."
-                : "Strong focus. You can enter a productive flow faster than usual.",
-        today:
-          v < 55
-            ? ["Use a 10–15 minute timer (one task only)", "Clear your desk/phone distractions", "Take a 2-minute break after timer ends"]
-            : ["Do one deep work block (25–35 min)", "Turn on 'Do Not Disturb'", "Start with the easiest step first"],
-      }),
-      Sleep: (v) => ({
-        meaning:
-          v < 35
-            ? "Sleep quality looks low. This can make stress and focus harder tomorrow."
-            : v < 55
-              ? "Sleep is okay, but not fully restorative."
-              : v < 75
-                ? "Sleep quality is decent."
-                : "Sleep quality is strong. Great recovery window.",
-        today:
-          v < 75
-            ? ["Dim lights 60 minutes before bed", "Avoid screens last 20 minutes", "If you can’t sleep: try calm breathing for 5 minutes"]
-            : ["Keep a consistent bedtime tonight", "Short wind-down (5–10 min)", "Hydrate earlier, not right before bed"],
-      }),
-      Energy: (v) => ({
-        meaning:
-          v < 35
-            ? "Energy is low today. That’s a signal to pace, not push."
-            : v < 55
-              ? "Your energy is inconsistent."
-              : v < 75
-                ? "Energy is moderate — you can get things done with breaks."
-                : "Energy is strong. Use it wisely.",
-        today:
-          v < 55
-            ? ["Pick one 'must-do' only", "Short walk (5–10 minutes)", "Eat something simple + water"]
-            : ["Do the hardest thing first", "Schedule a break before you 'feel tired'", "Keep evenings lighter"],
-      }),
-      Motivation: (v) => ({
-        meaning:
-          v < 35
-            ? "Motivation is low — this is normal when life feels heavy."
-            : v < 55
-              ? "Motivation is there, but small and fragile."
-              : v < 75
-                ? "Motivation is steady."
-                : "High motivation. Great time to build momentum.",
-        today:
-          v < 55
-            ? ["Set a tiny goal (2-minute start)", "Reward yourself immediately after starting", "Choose 'good enough' over perfect"]
-            : ["Plan 3 steps max", "Batch similar tasks", "Start early to reduce mental load"],
-      }),
-      Confidence: (v) => ({
-        meaning:
-          v < 35
-            ? "Confidence feels shaky. You may doubt yourself more than you need to."
-            : v < 55
-              ? "Confidence is mixed."
-              : v < 75
-                ? "Confidence is okay."
-                : "Confidence is strong."
-          ,
-        today:
-          v < 55
-            ? ["Talk to yourself like a friend (1 kind sentence)", "Write: 'I’ve handled harder weeks'", "Do one small action to prove progress"]
-            : ["Commit to a simple next step", "Keep expectations realistic", "Celebrate effort, not just outcomes"],
-      }),
-      Relationships: (v) => ({
-        meaning:
-          v < 35
-            ? "You might feel disconnected right now."
-            : v < 55
-              ? "Some connections feel okay, others feel distant."
-              : v < 75
-                ? "Relationships look supportive overall."
-                : "You likely feel connected and understood.",
-        today:
-          v < 75
-            ? ["Message one person (short + honest)", "Try a 10-minute chat or call", "Join a small community moment (if possible)"]
-            : ["Share one win with someone", "Make plans for next week", "Offer support back — connection grows both ways"],
-      }),
-    };
-
-    const fn = bySubject[subject];
-    return fn ? fn(value) : { meaning: common.steady, today: ["Keep it simple today."] };
   };
 
   const overallScore = Math.round(
@@ -212,7 +211,7 @@ function Assessment() {
     for (const m of summary) {
       const g = guidanceFor(m.subject, m.A);
       lines.push(`${m.subject}: ${m.A}/100 (${rangeFor(m.A).label})`);
-      lines.push(`Meaning: ${g.meaning}`);
+      lines.push(`Meaning: ${g.meaning}`); // This line will now use the refactored function
       lines.push("Do today:");
       for (const t of g.today) lines.push(`- ${t}`);
       if (g.caution) lines.push(`Safety note: ${g.caution}`);
@@ -403,4 +402,3 @@ function Assessment() {
     </div>
   );
 }
-

@@ -20,13 +20,12 @@ import {
 
 const nav = [
   { to: "/", label: "Home", icon: Home },
-  { to: "/assessment", label: "Assessment", icon: ClipboardCheck },
+  { to: "/mind-score", label: "Mind Score", icon: ClipboardCheck },
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/mood", label: "Mood", icon: HeartPulse },
+  { to: "/melody-of-life", label: "MeLodY OfLife", icon: HeartPulse },
   { to: "/journal", label: "Journal", icon: BookOpen },
   { to: "/games", label: "Games", icon: Gamepad2 },
   { to: "/coach", label: "AI Coach", icon: Sparkles },
-  { to: "/meditation", label: "Meditation", icon: Headphones },
   { to: "/community", label: "Community", icon: Users },
   { to: "/pricing", label: "Pricing", icon: Tag },
   { to: "/profile", label: "Profile", icon: User },

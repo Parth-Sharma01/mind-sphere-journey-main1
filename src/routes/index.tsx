@@ -1,87 +1,103 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Link } from "@tanstack/react-router";
-import { motion } from "framer-motion";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls, Stars, useGLTF } from "@react-three/drei";
-import { Suspense, useMemo, useRef, useState } from "react";
-import * as THREE from "three";
-import {
-  Sparkles,
-  Brain,
-  HeartPulse,
-  Wand2,
-  Gamepad2,
-  ArrowRight,
-  Users,
-  LineChart,
-  ClipboardCheck,
-} from "lucide-react";
+import { PremiumHeroSection } from "@/components/PremiumHeroSection";
 
 export const Route = createFileRoute("/")({
   component: Index,
 });
 
-type Vec3 = { x: number; y: number; z: number };
-
-function seededRandom(seed: number) {
-  let t = seed % 2147483647;
-  if (t <= 0) t += 2147483646;
-  return () => (t = (t * 16807) % 2147483647) / 2147483647;
+function Index() {
+  return <PremiumHeroSection />;
 }
 
-// Procedural brain model (no external GLB dependency)
+// Procedural brain model: anatomically-inspired lobes + sulci
 function BrainModel() {
   const modelRef = useRef<THREE.Group>(null);
-  const meshRef = useRef<THREE.Mesh>(null);
+  const brainRef = useRef<THREE.Mesh>(null);
 
   const brainkGeo = useMemo(() => {
-    // Create a detailed procedural brain-like shape using multiple geometries
     const group = new THREE.Group();
 
-    // Main brain body - icosahedron with high detail
-    const mainGeometry = new THREE.IcosahedronGeometry(1.0, 6);
+    // Base lobed shape: two offset hemispheres blended by overlapping displacement
+    const geo = new THREE.IcosahedronGeometry(1.02, 7);
 
-    // Add some displacement for brain-like features
-    const positionAttribute = mainGeometry.getAttribute("position");
-    const originalPositions = new Float32Array(positionAttribute.array);
+    const posAttr = geo.getAttribute("position") as THREE.BufferAttribute;
+    const original = new Float32Array(posAttr.array);
 
-    for (let i = 0; i < originalPositions.length; i += 3) {
-      const x = originalPositions[i];
-      const y = originalPositions[i + 1];
-      const z = originalPositions[i + 2];
+    for (let i = 0; i < original.length; i += 3) {
+      const x0 = original[i];
+      const y0 = original[i + 1];
+      const z0 = original[i + 2];
 
-      // Add subtle organic bumps to simulate brain surface
-      const noise =
-        Math.sin(x * 3) * Math.cos(y * 3) * Math.sin(z * 2) * 0.12 +
-        Math.sin(x * 7) * Math.cos(y * 5) * 0.08;
+      // Normalize direction for consistent radial displacement
+      const len = Math.max(1e-6, Math.sqrt(x0 * x0 + y0 * y0 + z0 * z0));
+      const nx = x0 / len;
+      const ny = y0 / len;
+      const nz = z0 / len;
 
-      positionAttribute.setXYZ(
-        i / 3,
-        x * (1 + noise),
-        y * (1 + noise * 0.8),
-        z * (1 + noise)
-      );
+      // Hemispheric bias
+      const hemi = nx >= 0 ? 1 : -1;
+      const lateral = Math.abs(nx);
+
+      // Sulci-like grooves (procedural trigonometric combing)
+      const sulciA =
+        Math.sin((ny * 7.0 + nz * 2.2) + hemi * lateral * 3.0) * 0.085;
+      const sulciB =
+        Math.cos((nx * 4.5 + ny * 3.0) + nz * 1.8) * 0.065;
+
+      // Fold factor stronger near surface + slight depth variation
+      const surface = 1 - Math.abs(ny) * 0.12;
+      const groove = (sulciA + sulciB) * surface;
+
+      // Make the overall brain slightly more "human" by tapering toward the back and bottom
+      const taper = 0.86 + (1 - ny) * 0.16 + (Math.max(0, -nz) * 0.04);
+
+      // Final radial scale
+      const scale = taper * (1 + groove);
+
+      posAttr.setXYZ(i / 3, nx * len * scale, ny * len * scale * (0.98 + groove), nz * len * scale);
     }
-    (positionAttribute as THREE.BufferAttribute).needsUpdate = true;
 
-    mainGeometry.computeVertexNormals();
+    posAttr.needsUpdate = true;
+    geo.computeVertexNormals();
 
     const material = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color("#8b5cf6"),
-      metalness: 0.12,
-      roughness: 0.42,
-      transmission: 0.25,
-      thickness: 2,
-      ior: 1.5,
-      emissive: new THREE.Color("#7c3aed"),
-      emissiveIntensity: 0.35,
-      clearcoat: 0.85,
-      clearcoatRoughness: 0.25,
+      color: new THREE.Color("#9f7aea"),
+      metalness: 0.08,
+      roughness: 0.35,
+      transmission: 0.38,
+      thickness: 2.4,
+      ior: 1.55,
+      emissive: new THREE.Color("#a855f7"),
+      emissiveIntensity: 0.25,
+      clearcoat: 0.95,
+      clearcoatRoughness: 0.18,
       side: THREE.DoubleSide,
+      // @ts-expect-error alphaToCoverage supported in some three versions
+      alphaToCoverage: true,
     });
 
-    const mesh = new THREE.Mesh(mainGeometry, material);
-    group.add(mesh);
+    const brainMesh = new THREE.Mesh(geo, material);
+    group.add(brainMesh);
+
+    // Add a thin “meningeal” glow shell
+    const shellGeo = new THREE.IcosahedronGeometry(1.04, 6);
+    const shellMat = new THREE.MeshPhysicalMaterial({
+      color: new THREE.Color("#7c3aed"),
+      metalness: 0.02,
+      roughness: 0.25,
+      transmission: 0.25,
+      thickness: 1.2,
+      ior: 1.4,
+      emissive: new THREE.Color("#7c3aed"),
+      emissiveIntensity: 0.55,
+      opacity: 0.35,
+      transparent: true,
+      side: THREE.DoubleSide,
+      clearcoat: 1,
+      clearcoatRoughness: 0.12,
+    });
+    const shell = new THREE.Mesh(shellGeo, shellMat);
+    group.add(shell);
 
     return group;
   }, []);
@@ -89,16 +105,17 @@ function BrainModel() {
   useFrame((state) => {
     if (modelRef.current) {
       modelRef.current.rotation.y += 0.0006;
-      modelRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.15) * 0.035;
+      modelRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.15) * 0.03;
     }
   });
 
   return (
-    <group ref={modelRef} scale={1.15}>
+    <group ref={modelRef} scale={1.18}>
       <primitive object={brainkGeo} />
     </group>
   );
 }
+
 
 // Neural network visualization around the brain
 function NeuralNetwork() {
@@ -288,11 +305,11 @@ function NeuralBrainScene() {
   return (
     <group ref={groupRef}>
       {/* Premium lighting setup */}
-      <ambientLight intensity={0.32} />
-      <pointLight position={[6, 6, 7]} intensity={2.8} color="#d946ef" />
-      <pointLight position={[-6, -4, -7]} intensity={2.0} color="#22d3ee" />
-      <pointLight position={[0, 4, 5]} intensity={1.4} color="#ffffff" decay={2.2} />
-      <directionalLight position={[5, 5, 5]} intensity={0.8} color="#ffffff" />
+      <ambientLight intensity={0.28} />
+      <pointLight position={[6, 6, 7]} intensity={3.2} color="#d946ef" />
+      <pointLight position={[-6, -4, -7]} intensity={2.4} color="#22d3ee" />
+      <pointLight position={[0, 5.2, 6]} intensity={1.9} color="#ffffff" decay={2.2} />
+      <directionalLight position={[5, 5, 5]} intensity={0.9} color="#ffffff" />
 
       {/* Starfield background */}
       <Stars radius={55} depth={70} count={1800} factor={4} fade speed={0.75} />
@@ -302,6 +319,8 @@ function NeuralBrainScene() {
 
       {/* Neural network visualization */}
       <NeuralNetwork />
+
+      {/* Post-processing: bloom (disabled: drei bloom module not available in this build) */}
 
       {/* Interactive orbit controls */}
       <OrbitControls

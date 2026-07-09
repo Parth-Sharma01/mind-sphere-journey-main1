@@ -1,28 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { WelcomeSection } from "@/components/WelcomeSection";
-import {
-  EnhancedStat,
-  MoodTodayCard,
-  WellnessScoreCard,
-  XPCard,
-  FocusCard,
-} from "@/components/EnhancedStats";
-import { InteractiveMoodTimeline } from "@/components/InteractiveMoodTimeline";
-import { InteractiveMindGalaxy } from "@/components/InteractiveMindGalaxy";
-import { InteractiveDailyGoals } from "@/components/InteractiveDailyGoals";
-import { EnhancedAchievements } from "@/components/EnhancedAchievements";
-import { SmartRecommendations } from "@/components/SmartRecommendations";
+import { EnhancedDashboard } from "@/components/EnhancedDashboard";
 
 export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
-  head: () => ({ meta: [{ title: "Dashboard · MindSphere AI" }] }),
+  head: () => ({ meta: [{ title: "Dashboard · MindSphere" }] }),
 });
 
 function Dashboard() {
   return (
-    <div className="space-y-6">
-      {/* Welcome Section */}
-      <WelcomeSection />
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="max-w-6xl mx-auto">
+        <EnhancedDashboard />
+      </div>
+    </div>
+  );
+}
 
       {/* Stats Grid */}
       <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -47,3 +39,4 @@ function Dashboard() {
     </div>
   );
 }
+

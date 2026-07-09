@@ -1,0 +1,26 @@
+{
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "vite",
+  "outputDirectory": "dist",
+  "nodeVersion": "20.x",
+  "env": [
+    {
+      "key": "NODE_ENV",
+      "value": "production"
+    }
+  ],
+  "routes": [
+    {
+      "src": "^/(?!.*\\.).*$",
+      "dest": "/index.html"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
